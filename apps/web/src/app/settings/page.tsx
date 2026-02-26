@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
+import { format } from "date-fns";
 import {
   User,
   Bell,
@@ -62,12 +63,17 @@ const TIMEZONES = [
 
 export default function SettingsPage() {
   const { data: session } = useSession();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab") as TabId | null;
   const [activeTab, setActiveTab] = useState<TabId>(
     tabParam && TABS.some((t) => t.id === tabParam) ? tabParam : "profile"
   );
   const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   // Profile state
   const [profileData, setProfileData] = useState({
@@ -127,8 +133,151 @@ export default function SettingsPage() {
 
   const saveProfile = async () => {
     setSaving(true);
-    // In production, call API to save profile
-    setTimeout(() => setSaving(false), 1000);
+    setSaveSuccess(false);
+    try {
+      await fetch("/api/settings/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(profileData),
+      });
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (error) {
+      console.error("Error saving profile:", error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const saveNotifications = async () => {
+    setSaving(true);
+    setSaveSuccess(false);
+    try {
+      await fetch("/api/settings/notifications", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(notifications),
+      });
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (error) {
+      console.error("Error saving notifications:", error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleUpgradePlan = async (plan: string) => {
+    try {
+      const res = await fetch("/api/billing/create-subscription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.checkoutUrl) {
+          window.open(data.checkoutUrl, "_blank");
+        }
+      }
+    } catch (error) {
+      console.error("Error creating subscription:", error);
+    }
+  };
+
+  const generateApiKey = async () => {
+    try {
+      const name = `Key ${format(new Date(), "dd-MMM-yyyy HH:mm")}`;
+      const key = `toi_${crypto.randomUUID().replace(/-/g, "").substring(0, 32)}`;
+      setApiKeys((prev) => [
+        ...prev,
+        {
+          id: `key-${Date.now()}`,
+          name,
+          key,
+          created: format(new Date(), "yyyy-MM-dd"),
+          lastUsed: "Never",
+          permissions: "read",
+        },
+      ]);
+    } catch (error) {
+      console.error("Error generating key:", error);
+    }
+  };
+
+  const deleteApiKey = (id: string) => {
+    setApiKeys((prev) => prev.filter((k) => k.id !== id));
+  };
+
+  const updatePassword = async () => {
+    setPasswordError("");
+    setPasswordSuccess(false);
+    if (passwordData.new.length < 8) {
+      setPasswordError("Password must be at least 8 characters");
+      return;
+    }
+    if (passwordData.new !== passwordData.confirm) {
+      setPasswordError("Passwords do not match");
+      return;
+    }
+    setSaving(true);
+    try {
+      await fetch("/api/settings/password", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          currentPassword: passwordData.current,
+          newPassword: passwordData.new,
+        }),
+      });
+      setPasswordSuccess(true);
+      setPasswordData({ current: "", new: "", confirm: "" });
+      setTimeout(() => setPasswordSuccess(false), 3000);
+    } catch (error) {
+      console.error("Error updating password:", error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const exportAllData = async () => {
+    setExporting(true);
+    try {
+      const [stratRes, taskRes] = await Promise.all([
+        fetch("/api/strategies"),
+        fetch("/api/tasks"),
+      ]);
+      const strategies = stratRes.ok ? await stratRes.json() : [];
+      const tasks = taskRes.ok ? await taskRes.json() : [];
+      const exportData = {
+        exportedAt: new Date().toISOString(),
+        profile: profileData,
+        notifications,
+        strategies: Array.isArray(strategies) ? strategies : strategies.strategies || [],
+        tasks: Array.isArray(tasks) ? tasks : [],
+      };
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `tradeos-export-${format(new Date(), "yyyy-MM-dd")}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error exporting data:", error);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    try {
+      await fetch("/api/settings/account", { method: "DELETE" });
+      setShowDeleteDialog(false);
+      signOut({ callbackUrl: "/auth/login" });
+    } catch (error) {
+      console.error("Error deleting account:", error);
+    }
   };
 
   const copyApiKey = (key: string, id: string) => {
@@ -230,10 +379,17 @@ export default function SettingsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button className="bg-[#3B82F6] hover:bg-[#2563EB]" onClick={saveProfile} disabled={saving}>
-                  <Save className="h-4 w-4 mr-2" />
-                  {saving ? "Saving..." : "Save Changes"}
-                </Button>
+                <div className="flex items-center gap-3">
+                  <Button className="bg-[#3B82F6] hover:bg-[#2563EB]" onClick={saveProfile} disabled={saving}>
+                    <Save className="h-4 w-4 mr-2" />
+                    {saving ? "Saving..." : "Save Changes"}
+                  </Button>
+                  {saveSuccess && (
+                    <span className="text-sm text-[#10B981] flex items-center gap-1">
+                      <Check className="h-4 w-4" /> Saved
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -264,10 +420,17 @@ export default function SettingsPage() {
                     />
                   </div>
                 ))}
-                <Button className="bg-[#3B82F6] hover:bg-[#2563EB]" onClick={saveProfile} disabled={saving}>
-                  <Save className="h-4 w-4 mr-2" />
-                  {saving ? "Saving..." : "Save Preferences"}
-                </Button>
+                <div className="flex items-center gap-3">
+                  <Button className="bg-[#3B82F6] hover:bg-[#2563EB]" onClick={saveNotifications} disabled={saving}>
+                    <Save className="h-4 w-4 mr-2" />
+                    {saving ? "Saving..." : "Save Preferences"}
+                  </Button>
+                  {saveSuccess && (
+                    <span className="text-sm text-[#10B981] flex items-center gap-1">
+                      <Check className="h-4 w-4" /> Saved
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -294,7 +457,7 @@ export default function SettingsPage() {
                     </p>
                   </div>
                   {((session?.user as any)?.tier === "FREE" || !(session?.user as any)?.tier) && (
-                    <Button className="bg-[#3B82F6] hover:bg-[#2563EB]">
+                    <Button className="bg-[#3B82F6] hover:bg-[#2563EB]" onClick={() => handleUpgradePlan("pro")}>
                       Upgrade to Pro
                     </Button>
                   )}
@@ -350,7 +513,7 @@ export default function SettingsPage() {
             <div className="bg-[#0F1629] border border-[#1E2A45] rounded-xl p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-semibold text-[#F1F5F9]">API Keys</h2>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={generateApiKey}>
                   <Key className="h-4 w-4 mr-2" />
                   Generate New Key
                 </Button>
@@ -374,9 +537,17 @@ export default function SettingsPage() {
                         {copiedKey === key.id ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
                       </Button>
                     </div>
-                    <div className="flex items-center gap-4 text-xs text-[#475569]">
-                      <span>Created: {key.created}</span>
-                      <span>Last used: {key.lastUsed}</span>
+                    <div className="flex items-center justify-between text-xs text-[#475569]">
+                      <div className="flex items-center gap-4">
+                        <span>Created: {key.created}</span>
+                        <span>Last used: {key.lastUsed}</span>
+                      </div>
+                      <button
+                        onClick={() => deleteApiKey(key.id)}
+                        className="text-[#475569] hover:text-[#EF4444] transition-colors"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -418,9 +589,19 @@ export default function SettingsPage() {
                       className="bg-[#0A0E1A] border-[#1E2A45]"
                     />
                   </div>
-                  <Button className="bg-[#3B82F6] hover:bg-[#2563EB]">
-                    Update Password
+                  <Button
+                    className="bg-[#3B82F6] hover:bg-[#2563EB]"
+                    onClick={updatePassword}
+                    disabled={saving || !passwordData.current || !passwordData.new || !passwordData.confirm}
+                  >
+                    {saving ? "Updating..." : "Update Password"}
                   </Button>
+                  {passwordError && <p className="text-xs text-[#EF4444]">{passwordError}</p>}
+                  {passwordSuccess && (
+                    <span className="text-xs text-[#10B981] flex items-center gap-1">
+                      <Check className="h-3.5 w-3.5" /> Password updated
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -430,9 +611,9 @@ export default function SettingsPage() {
                 <p className="text-sm text-[#94A3B8] mb-4">
                   Download all your data including strategies, backtests, tasks, and settings.
                 </p>
-                <Button variant="outline">
+                <Button variant="outline" onClick={exportAllData} disabled={exporting}>
                   <Download className="h-4 w-4 mr-2" />
-                  Export All Data (JSON)
+                  {exporting ? "Exporting..." : "Export All Data (JSON)"}
                 </Button>
               </div>
 
@@ -470,6 +651,7 @@ export default function SettingsPage() {
                         variant="destructive"
                         className="w-full"
                         disabled={deleteConfirmText !== "DELETE"}
+                        onClick={handleDeleteAccount}
                       >
                         Permanently Delete Account
                       </Button>

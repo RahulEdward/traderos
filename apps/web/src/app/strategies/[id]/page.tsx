@@ -190,7 +190,17 @@ export default function StrategyDetailPage() {
         >
           <Upload className="h-4 w-4 mr-2" /> Import Backtest
         </Button>
-        <Button variant="ghost">
+        <Button
+          variant="ghost"
+          onClick={() => {
+            const win = window.open("", "_blank");
+            if (win) {
+              win.document.write(`<html><head><title>${strategy.name} - Report</title><style>body{font-family:sans-serif;padding:20px;background:#fff;color:#000}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:8px;text-align:left;font-size:12px}</style></head><body><h1>${strategy.name}</h1><p>Exported on ${new Date().toLocaleDateString()}</p></body></html>`);
+              win.document.close();
+              win.print();
+            }
+          }}
+        >
           <FileDown className="h-4 w-4 mr-2" /> Export PDF
         </Button>
       </div>
@@ -410,15 +420,40 @@ export default function StrategyDetailPage() {
 
         {/* Live Trading Tab */}
         <TabsContent value="live">
-          <div className="text-center py-16 bg-[#0A0A0A] border border-[#1A1A1A] rounded-xl">
-            <p className="text-sm text-[#475569]">Live trading tracker coming in Phase 4</p>
+          <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-[#F1F5F9]">Live Trades</h3>
+              <Button variant="outline" size="sm" onClick={() => router.push("/live-trading")}>
+                <Activity className="h-4 w-4 mr-2" /> Go to Live Trading
+              </Button>
+            </div>
+            <p className="text-sm text-[#94A3B8]">
+              Track real-money trades for this strategy in the Live Trading section. Log entries, exits, and compare backtest vs live performance.
+            </p>
           </div>
         </TabsContent>
 
         {/* History Tab */}
         <TabsContent value="history">
-          <div className="text-center py-16 bg-[#0A0A0A] border border-[#1A1A1A] rounded-xl">
-            <p className="text-sm text-[#475569]">Version history coming soon</p>
+          <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-xl p-6">
+            <h3 className="text-lg font-semibold text-[#F1F5F9] mb-4">Import History</h3>
+            {strategy.backtestResults?.length > 0 ? (
+              <div className="space-y-3">
+                {strategy.backtestResults.map((bt: any, i: number) => (
+                  <div key={bt.id || i} className="flex items-center justify-between p-3 bg-[#050505] border border-[#1A1A1A] rounded-lg">
+                    <div>
+                      <p className="text-sm text-[#F1F5F9]">{bt.fileName || `Backtest #${i + 1}`}</p>
+                      <p className="text-xs text-[#475569]">{bt.totalTrades} trades &middot; {format(new Date(bt.createdAt || bt.importedAt || new Date()), "dd MMM yyyy HH:mm")}</p>
+                    </div>
+                    <Badge className={bt.netProfit >= 0 ? "bg-[#10B981]/20 text-[#10B981]" : "bg-[#EF4444]/20 text-[#EF4444]"}>
+                      Net: {new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(bt.netProfit)}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-[#475569] text-center py-8">No import history yet. Import your first backtest to see history here.</p>
+            )}
           </div>
         </TabsContent>
       </Tabs>

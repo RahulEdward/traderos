@@ -304,10 +304,34 @@ export default function ReportsPage() {
                             )}
                           </Button>
                         )}
-                        <Button variant="ghost" size="sm">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={async () => {
+                            const shareUrl = report.shareableLink || `${window.location.origin}/reports/${report.id}`;
+                            if (navigator.share) {
+                              await navigator.share({ title: report.title, url: shareUrl });
+                            } else {
+                              await navigator.clipboard.writeText(shareUrl);
+                              setCopiedLink(report.id);
+                              setTimeout(() => setCopiedLink(null), 2000);
+                            }
+                          }}
+                        >
                           <Share2 className="h-4 w-4" />
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const win = window.open("", "_blank");
+                            if (win) {
+                              win.document.write(`<html><head><title>${report.title}</title><style>body{font-family:sans-serif;padding:20px;background:#fff;color:#000}</style></head><body><h1>${report.title}</h1><p>Type: ${report.type}</p><p>Generated: ${format(new Date(report.createdAt), "dd MMM yyyy HH:mm")}</p>${report.strategyName ? `<p>Strategy: ${report.strategyName}</p>` : ""}</body></html>`);
+                              win.document.close();
+                              win.print();
+                            }
+                          }}
+                        >
                           <Download className="h-4 w-4 mr-2" />
                           PDF
                         </Button>

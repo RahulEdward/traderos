@@ -67,6 +67,10 @@ export default function IntegrationsPage() {
   const [newWebhookName, setNewWebhookName] = useState("");
   const [newWebhookStrategy, setNewWebhookStrategy] = useState("");
   const [creating, setCreating] = useState(false);
+  const [bridgeApiKey, setBridgeApiKey] = useState("••••••••••••••••••••");
+  const [zerodhaEmail, setZerodhaEmail] = useState("");
+  const [angelEmail, setAngelEmail] = useState("");
+  const [notifySubmitted, setNotifySubmitted] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     fetchData();
@@ -290,7 +294,13 @@ export default function IntegrationsPage() {
               <p className="text-xs text-[#94A3B8] mb-3">
                 The TradeOS Bridge App syncs your Amibroker backtest results automatically.
               </p>
-              <Button variant="outline" className="w-full">
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  alert("Bridge App download will be available soon. For now, use CSV import to sync Amibroker data.");
+                }}
+              >
                 <Download className="h-4 w-4 mr-2" />
                 Download Bridge App (Windows)
               </Button>
@@ -300,10 +310,29 @@ export default function IntegrationsPage() {
               <h4 className="text-sm font-medium text-[#F1F5F9] mb-2">API Key</h4>
               <div className="flex items-center gap-2">
                 <code className="flex-1 bg-[#080C18] border border-[#1E2A45] rounded px-3 py-2 text-xs text-[#475569] font-mono">
-                  ••••••••••••••••••••
+                  {bridgeApiKey}
                 </code>
-                <Button variant="outline" size="sm">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const newKey = `toi_bridge_${crypto.randomUUID().replace(/-/g, "").substring(0, 24)}`;
+                    setBridgeApiKey(newKey);
+                    navigator.clipboard.writeText(newKey);
+                  }}
+                >
                   <RefreshCw className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    navigator.clipboard.writeText(bridgeApiKey);
+                    setCopiedKey("bridge");
+                    setTimeout(() => setCopiedKey(null), 2000);
+                  }}
+                >
+                  {copiedKey === "bridge" ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
                 </Button>
               </div>
             </div>
@@ -339,13 +368,28 @@ export default function IntegrationsPage() {
             Connect your Zerodha Kite account for automated trade logging and live P&L tracking.
           </p>
           <div className="mt-4">
-            <Input
-              placeholder="Enter email to get notified"
-              className="bg-[#0A0E1A] border-[#1E2A45]"
-            />
-            <Button variant="outline" className="w-full mt-2" disabled>
-              Notify Me When Available
-            </Button>
+            {notifySubmitted.zerodha ? (
+              <p className="text-sm text-[#10B981] flex items-center gap-1">
+                <CheckCircle className="h-4 w-4" /> We&apos;ll notify you when Zerodha integration is ready!
+              </p>
+            ) : (
+              <>
+                <Input
+                  placeholder="Enter email to get notified"
+                  className="bg-[#0A0E1A] border-[#1E2A45]"
+                  value={zerodhaEmail}
+                  onChange={(e) => setZerodhaEmail(e.target.value)}
+                />
+                <Button
+                  variant="outline"
+                  className="w-full mt-2"
+                  disabled={!zerodhaEmail.includes("@")}
+                  onClick={() => setNotifySubmitted((p) => ({ ...p, zerodha: true }))}
+                >
+                  Notify Me When Available
+                </Button>
+              </>
+            )}
           </div>
         </div>
 
@@ -367,13 +411,28 @@ export default function IntegrationsPage() {
             Connect your Angel One account for automated trade logging and portfolio sync.
           </p>
           <div className="mt-4">
-            <Input
-              placeholder="Enter email to get notified"
-              className="bg-[#0A0E1A] border-[#1E2A45]"
-            />
-            <Button variant="outline" className="w-full mt-2" disabled>
-              Notify Me When Available
-            </Button>
+            {notifySubmitted.angel ? (
+              <p className="text-sm text-[#10B981] flex items-center gap-1">
+                <CheckCircle className="h-4 w-4" /> We&apos;ll notify you when Angel One integration is ready!
+              </p>
+            ) : (
+              <>
+                <Input
+                  placeholder="Enter email to get notified"
+                  className="bg-[#0A0E1A] border-[#1E2A45]"
+                  value={angelEmail}
+                  onChange={(e) => setAngelEmail(e.target.value)}
+                />
+                <Button
+                  variant="outline"
+                  className="w-full mt-2"
+                  disabled={!angelEmail.includes("@")}
+                  onClick={() => setNotifySubmitted((p) => ({ ...p, angel: true }))}
+                >
+                  Notify Me When Available
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </div>

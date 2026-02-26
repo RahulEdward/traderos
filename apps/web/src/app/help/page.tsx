@@ -289,6 +289,7 @@ export default function HelpPage() {
                 variant="outline"
                 className="w-full justify-start text-sm"
                 size="sm"
+                onClick={() => window.open("mailto:support@tradeos.in", "_blank")}
               >
                 <Mail className="h-4 w-4 mr-2" />
                 support@tradeos.in
@@ -297,6 +298,9 @@ export default function HelpPage() {
                 variant="outline"
                 className="w-full justify-start text-sm"
                 size="sm"
+                onClick={() => {
+                  alert("Live Chat is available for Pro and Agency plan subscribers. Upgrade your plan to access live support.");
+                }}
               >
                 <MessageCircle className="h-4 w-4 mr-2" />
                 Live Chat (Pro & Agency)
