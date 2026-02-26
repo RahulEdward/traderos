@@ -1,0 +1,426 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserTier {
+  FREE
+  PRO
+  AGENCY
+}
+
+enum StrategyStatus {
+  IDEA
+  IN_DEVELOPMENT
+  BACKTESTING
+  REVIEW
+  PAPER_TRADING
+  LIVE
+  PAUSED
+  RETIRED
+}
+
+enum SourcePlatform {
+  TRADINGVIEW
+  AMIBROKER
+  CUSTOM
+}
+
+enum TradeDirection {
+  LONG
+  SHORT
+}
+
+enum ReadinessVerdict {
+  READY
+  NEEDS_WORK
+  NOT_READY
+}
+
+enum PortfolioStatus {
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum TaskType {
+  BUG_FIX
+  OPTIMIZATION
+  RESEARCH
+  TESTING
+  DOCUMENTATION
+}
+
+enum TaskPriority {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+  SKIPPED
+}
+
+enum WebhookLogStatus {
+  SUCCESS
+  FAILED
+}
+
+enum IntegrationPlatform {
+  TRADINGVIEW
+  AMIBROKER
+  ANGELONE
+  ZERODHA
+  FYERS
+}
+
+enum IntegrationStatus {
+  CONNECTED
+  DISCONNECTED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+  PAST_DUE
+}
+
+// ─── NextAuth Models ───────────────────────────────────────────────
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ─── Core Models ───────────────────────────────────────────────────
+
+model User {
+  id                  String    @id @default(cuid())
+  email               String    @unique
+  name                String?
+  image               String?
+  hashedPassword      String?
+  emailVerified       DateTime?
+  tier                UserTier  @default(FREE)
+  timezone            String    @default("Asia/Kolkata")
+  currency            String    @default("INR")
+  riskProfile         String?
+  onboardingCompleted Boolean   @default(false)
+  tradingPlatform     String?
+  marketFocus         String[]
+  razorpayCustomerId  String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  accounts           Account[]
+  sessions           Session[]
+  strategies         Strategy[]
+  portfolios         Portfolio[]
+  tasks              Task[]
+  liveTrades         LiveTrade[]
+  webhooks           Webhook[]
+  notifications      Notification[]
+  integrationSettings IntegrationSetting[]
+  subscriptions      Subscription[]
+
+  @@map("users")
+}
+
+model Strategy {
+  id          String         @id @default(cuid())
+  userId      String
+  name        String
+  description String?        @db.Text
+  market      String?
+  instrument  String?
+  timeframe   String?
+  entryLogic  String?        @db.Text
+  exitLogic   String?        @db.Text
+  status      StrategyStatus @default(IDEA)
+  tags        String[]
+  version     Int            @default(1)
+  archivedAt  DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  backtestResults   BacktestResult[]
+  aiAnalyses        AiAnalysis[]
+  tasks             Task[]
+  liveTrades        LiveTrade[]
+  webhooks          Webhook[]
+  notifications     Notification[]
+  portfolioStrategies PortfolioStrategy[]
+
+  @@map("strategies")
+}
+
+model BacktestResult {
+  id              String         @id @default(cuid())
+  strategyId      String
+  versionNumber   Int
+  importedAt      DateTime       @default(now())
+  sourcePlatform  SourcePlatform @default(CUSTOM)
+  rawFileUrl      String?
+  totalTrades     Int            @default(0)
+  winRate         Float          @default(0)
+  profitFactor    Float          @default(0)
+  netProfit       Float          @default(0)
+  maxDrawdown     Float          @default(0)
+  maxDrawdownPct  Float          @default(0)
+  sharpeRatio     Float          @default(0)
+  sortinoRatio    Float          @default(0)
+  calmarRatio     Float          @default(0)
+  expectancy      Float          @default(0)
+  avgWin          Float          @default(0)
+  avgLoss         Float          @default(0)
+  bestTrade       Float          @default(0)
+  worstTrade      Float          @default(0)
+  recoveryFactor  Float          @default(0)
+  startDate       DateTime?
+  endDate         DateTime?
+  notes           String?        @db.Text
+
+  strategy   Strategy     @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+  trades     Trade[]
+  aiAnalyses AiAnalysis[]
+
+  @@map("backtest_results")
+}
+
+model Trade {
+  id               String         @id @default(cuid())
+  backtestResultId String
+  tradeNumber      Int
+  entryDate        DateTime
+  exitDate         DateTime?
+  direction        TradeDirection @default(LONG)
+  entryPrice       Float
+  exitPrice        Float?
+  profitLoss       Float          @default(0)
+  profitLossPct    Float          @default(0)
+  holdingPeriod    Int            @default(0)
+  symbol           String?
+
+  backtestResult BacktestResult @relation(fields: [backtestResultId], references: [id], onDelete: Cascade)
+
+  @@map("trades")
+}
+
+model AiAnalysis {
+  id                String           @id @default(cuid())
+  strategyId        String
+  backtestResultId  String?
+  createdAt         DateTime         @default(now())
+  overallScore      Int              @default(0)
+  readinessScore    Int              @default(0)
+  readinessVerdict  ReadinessVerdict @default(NOT_READY)
+  summary           String?          @db.Text
+  strengths         String[]
+  weaknesses        String[]
+  suggestions       String[]
+  riskNotes         String?          @db.Text
+  marketRegimeNotes String?          @db.Text
+  rawResponse       Json?
+
+  strategy       Strategy        @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+  backtestResult BacktestResult? @relation(fields: [backtestResultId], references: [id], onDelete: SetNull)
+
+  @@map("ai_analyses")
+}
+
+model Portfolio {
+  id          String          @id @default(cuid())
+  userId      String
+  name        String
+  description String?         @db.Text
+  status      PortfolioStatus @default(ACTIVE)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  portfolioStrategies PortfolioStrategy[]
+  notifications       Notification[]
+
+  @@map("portfolios")
+}
+
+model PortfolioStrategy {
+  id                   String   @id @default(cuid())
+  portfolioId          String
+  strategyId           String
+  capitalAllocationPct Float    @default(0)
+  addedAt              DateTime @default(now())
+
+  portfolio Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  strategy  Strategy  @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+
+  @@unique([portfolioId, strategyId])
+  @@map("portfolio_strategies")
+}
+
+model Task {
+  id          String       @id @default(cuid())
+  strategyId  String?
+  userId      String
+  title       String
+  description String?      @db.Text
+  taskType    TaskType     @default(RESEARCH)
+  priority    TaskPriority @default(MEDIUM)
+  status      TaskStatus   @default(TODO)
+  dueDate     DateTime?
+  createdAt   DateTime     @default(now())
+  completedAt DateTime?
+
+  strategy Strategy? @relation(fields: [strategyId], references: [id], onDelete: SetNull)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("tasks")
+}
+
+model LiveTrade {
+  id            String         @id @default(cuid())
+  strategyId    String
+  userId        String
+  entryDate     DateTime
+  exitDate      DateTime?
+  symbol        String
+  direction     TradeDirection @default(LONG)
+  entryPrice    Float
+  exitPrice     Float?
+  quantity      Int            @default(0)
+  grossPnl      Float          @default(0)
+  netPnl        Float          @default(0)
+  broker        String?
+  notes         String?        @db.Text
+  screenshotUrl String?
+  createdAt     DateTime       @default(now())
+
+  strategy Strategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("live_trades")
+}
+
+model Webhook {
+  id              String    @id @default(cuid())
+  userId          String
+  strategyId      String?
+  webhookKey      String    @unique
+  name            String?
+  createdAt       DateTime  @default(now())
+  lastTriggeredAt DateTime?
+  totalTriggers   Int       @default(0)
+
+  user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  strategy Strategy?    @relation(fields: [strategyId], references: [id], onDelete: SetNull)
+  logs     WebhookLog[]
+
+  @@map("webhooks")
+}
+
+model WebhookLog {
+  id           String           @id @default(cuid())
+  webhookId    String
+  receivedAt   DateTime         @default(now())
+  payload      Json?
+  status       WebhookLogStatus @default(SUCCESS)
+  errorMessage String?
+  responseTime Int?
+
+  webhook Webhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+
+  @@map("webhook_logs")
+}
+
+model Notification {
+  id          String    @id @default(cuid())
+  userId      String
+  type        String
+  title       String
+  body        String?   @db.Text
+  read        Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  strategyId  String?
+  portfolioId String?
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  strategy  Strategy?  @relation(fields: [strategyId], references: [id], onDelete: SetNull)
+  portfolio Portfolio? @relation(fields: [portfolioId], references: [id], onDelete: SetNull)
+
+  @@map("notifications")
+}
+
+model IntegrationSetting {
+  id              String              @id @default(cuid())
+  userId          String
+  platform        IntegrationPlatform
+  apiKeyEncrypted String?
+  status          IntegrationStatus   @default(DISCONNECTED)
+  lastSyncAt      DateTime?
+  configJson      Json?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, platform])
+  @@map("integration_settings")
+}
+
+model Subscription {
+  id                      String             @id @default(cuid())
+  userId                  String
+  plan                    UserTier           @default(FREE)
+  razorpaySubscriptionId  String?
+  status                  SubscriptionStatus @default(ACTIVE)
+  currentPeriodStart      DateTime?
+  currentPeriodEnd        DateTime?
+  createdAt               DateTime           @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}

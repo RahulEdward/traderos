@@ -1,0 +1,22 @@
+{
+  "name": "tradeos-india",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The Operating System for Indian Breakout Traders",
+  "scripts": {
+    "dev": "concurrently \"pnpm --filter @tradeos/web dev\" \"pnpm --filter @tradeos/api dev\"",
+    "build": "pnpm --filter @tradeos/web build && pnpm --filter @tradeos/api build",
+    "db:generate": "pnpm --filter @tradeos/db generate",
+    "db:push": "pnpm --filter @tradeos/db push",
+    "db:migrate": "pnpm --filter @tradeos/db migrate",
+    "db:studio": "pnpm --filter @tradeos/db studio",
+    "lint": "pnpm --filter @tradeos/web lint"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "packageManager": "pnpm@9.1.0",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

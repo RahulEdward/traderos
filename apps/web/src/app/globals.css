@@ -1,0 +1,136 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+@layer base {
+  :root {
+    --background: 0 0% 0%;
+    --foreground: 213 31% 95%;
+
+    --card: 0 0% 4%;
+    --card-foreground: 213 31% 95%;
+    --card-border: 0 0% 10%;
+
+    --sidebar: 0 0% 2%;
+
+    --popover: 0 0% 4%;
+    --popover-foreground: 213 31% 95%;
+
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 187 92% 42%;
+    --secondary-foreground: 0 0% 100%;
+
+    --success: 160 84% 39%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 0%;
+
+    --danger: 0 84% 60%;
+    --danger-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --muted: 0 0% 10%;
+    --muted-foreground: 215 20% 55%;
+
+    --accent: 0 0% 10%;
+    --accent-foreground: 213 31% 95%;
+
+    --border: 0 0% 10%;
+    --input: 0 0% 10%;
+    --ring: 217 91% 60%;
+
+    --radius: 0.75rem;
+
+    --text-primary: #F1F5F9;
+    --text-secondary: #94A3B8;
+    --text-muted: #475569;
+
+    --bg-main: #000000;
+    --bg-card: #0A0A0A;
+    --bg-sidebar: #050505;
+    --border-color: #1A1A1A;
+
+    --color-primary: #3B82F6;
+    --color-primary-hover: #2563EB;
+    --color-secondary: #06B6D4;
+    --color-success: #10B981;
+    --color-warning: #F59E0B;
+    --color-danger: #EF4444;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--bg-main);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+  }
+}
+
+@layer utilities {
+  .font-mono-numbers {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .text-gradient-blue {
+    @apply bg-gradient-to-r from-blue-500 to-cyan-400 bg-clip-text text-transparent;
+  }
+
+  .card-hover {
+    @apply transition-all duration-200;
+  }
+  .card-hover:hover {
+    border-color: rgba(59, 130, 246, 0.3);
+  }
+
+  .metric-value {
+    @apply font-mono-numbers text-2xl font-semibold;
+  }
+
+  .status-badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .tier-badge-free {
+    @apply bg-gray-700/50 text-gray-300;
+  }
+
+  .tier-badge-pro {
+    @apply bg-gradient-to-r from-blue-600 to-blue-400 text-white;
+  }
+
+  .tier-badge-agency {
+    @apply bg-gradient-to-r from-purple-600 to-purple-400 text-white;
+  }
+}
