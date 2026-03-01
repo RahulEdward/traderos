@@ -28,6 +28,7 @@ import { MonthlyHeatmap } from "@/components/charts/monthly-heatmap";
 import { CsvImportWizard } from "@/components/forms/csv-import-wizard";
 import { AiAnalysisTab } from "@/components/strategy/ai-analysis-tab";
 import { TaskBoard } from "@/components/strategy/task-board";
+import { BacktestRunner } from "@/components/backtest/backtest-runner";
 import { cn } from "@/lib/utils";
 import { STRATEGY_STATUS_CONFIG, formatINR, formatPercentage } from "@tradeos/shared";
 
@@ -394,6 +395,16 @@ export default function StrategyDetailPage() {
                     </p>
                   )}
                 </div>
+              </div>
+
+              {/* AFML Advanced Backtest Runner */}
+              <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-xl p-6">
+                <h3 className="text-lg font-semibold text-[#F1F5F9] mb-4">Advanced Analysis (AFML)</h3>
+                <BacktestRunner
+                  strategyId={strategy.id}
+                  strategyName={strategy.name}
+                  hasTrades={!!latestBacktest?.trades?.length}
+                />
               </div>
             </div>
           )}

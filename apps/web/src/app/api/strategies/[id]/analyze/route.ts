@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@tradeos/db";
 import Anthropic from "@anthropic-ai/sdk";
+import { toJsonString, toJsonObjectString, parseAnalysisArrays } from "@/lib/db-utils";
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY || "",
@@ -127,7 +128,7 @@ Respond in this exact JSON format:
       result.readinessVerdict = "NOT_READY";
     }
 
-    // Save to DB
+    // Save to DB (serialize arrays as JSON strings for SQLite)
     const analysis = await prisma.aiAnalysis.create({
       data: {
         strategyId: params.id,
@@ -136,12 +137,12 @@ Respond in this exact JSON format:
         readinessScore: result.readinessScore,
         readinessVerdict: result.readinessVerdict,
         summary: result.summary,
-        strengths: result.strengths,
-        weaknesses: result.weaknesses,
-        suggestions: result.suggestions,
+        strengths: toJsonString(result.strengths),
+        weaknesses: toJsonString(result.weaknesses),
+        suggestions: toJsonString(result.suggestions),
         riskNotes: result.riskNotes,
         marketRegimeNotes: result.marketRegimeNotes,
-        rawResponse: result,
+        rawResponse: toJsonObjectString(result),
       },
     });
 
@@ -156,7 +157,7 @@ Respond in this exact JSON format:
       },
     });
 
-    return NextResponse.json(analysis);
+    return NextResponse.json(parseAnalysisArrays(analysis));
   } catch (error: any) {
     console.error("Error running AI analysis:", error);
     return NextResponse.json(
@@ -191,7 +192,7 @@ export async function GET(
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json(analyses);
+    return NextResponse.json(analyses.map(parseAnalysisArrays));
   } catch (error) {
     console.error("Error fetching analyses:", error);
     return NextResponse.json(

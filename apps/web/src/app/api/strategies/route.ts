@@ -1,25 +1,11 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { createStrategySchema } from "@tradeos/shared";
-import { isDemoMode, DEMO_STRATEGIES } from "@/lib/mock-data";
+import { toJsonString, parseStrategyArrays } from "@/lib/db-utils";
 
 // GET all strategies for user
 export async function GET() {
   try {
-    if (isDemoMode()) {
-      const strategies = DEMO_STRATEGIES.map((s) => ({
-        ...s,
-        backtestResults: s.backtestResults.slice(0, 1).map((bt) => ({
-          winRate: bt.winRate,
-          profitFactor: bt.profitFactor,
-          maxDrawdownPct: bt.maxDrawdownPct,
-          netProfit: bt.netProfit,
-        })),
-        _count: { backtestResults: s.backtestResults.length },
-      }));
-      return NextResponse.json(strategies);
-    }
-
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -44,7 +30,7 @@ export async function GET() {
       orderBy: { updatedAt: "desc" },
     });
 
-    return NextResponse.json(strategies);
+    return NextResponse.json(strategies.map(parseStrategyArrays));
   } catch (error) {
     console.error("Error fetching strategies:", error);
     return NextResponse.json(
@@ -57,28 +43,6 @@ export async function GET() {
 // POST create new strategy
 export async function POST(req: Request) {
   try {
-    if (isDemoMode()) {
-      const body = await req.json();
-      const parsed = createStrategySchema.safeParse(body);
-      if (!parsed.success) {
-        return NextResponse.json(
-          { error: parsed.error.errors[0].message },
-          { status: 400 }
-        );
-      }
-      return NextResponse.json(
-        {
-          id: `strat-demo-${Date.now()}`,
-          ...parsed.data,
-          userId: "demo-user-001",
-          version: 1,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-        { status: 201 }
-      );
-    }
-
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -98,11 +62,12 @@ export async function POST(req: Request) {
     const strategy = await prisma.strategy.create({
       data: {
         ...parsed.data,
+        tags: toJsonString(parsed.data.tags),
         userId: session.user.id,
       },
     });
 
-    return NextResponse.json(strategy, { status: 201 });
+    return NextResponse.json(parseStrategyArrays(strategy), { status: 201 });
   } catch (error) {
     console.error("Error creating strategy:", error);
     return NextResponse.json(

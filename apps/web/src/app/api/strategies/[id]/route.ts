@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { updateStrategySchema } from "@tradeos/shared";
-import { isDemoMode, DEMO_STRATEGIES, DEMO_TRADES } from "@/lib/mock-data";
+import { toJsonString, parseStrategyArrays, parseAnalysisArrays } from "@/lib/db-utils";
 
 // GET single strategy
 export async function GET(
@@ -9,25 +9,6 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    if (isDemoMode()) {
-      const strategy = DEMO_STRATEGIES.find((s) => s.id === params.id);
-      if (!strategy) {
-        return NextResponse.json(
-          { error: "Strategy not found" },
-          { status: 404 }
-        );
-      }
-      return NextResponse.json({
-        ...strategy,
-        backtestResults: strategy.backtestResults.map((bt) => ({
-          ...bt,
-          trades: DEMO_TRADES.filter((t) => t.backtestResultId === bt.id),
-        })),
-        tasks: [],
-        liveTrades: [],
-      });
-    }
-
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -54,6 +35,10 @@ export async function GET(
       );
     }
 
+    // Parse JSON arrays for SQLite
+    parseStrategyArrays(strategy);
+    strategy.aiAnalyses?.forEach(parseAnalysisArrays);
+
     return NextResponse.json(strategy);
   } catch (error) {
     console.error("Error fetching strategy:", error);
@@ -70,11 +55,6 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    if (isDemoMode()) {
-      const body = await req.json();
-      return NextResponse.json({ id: params.id, ...body });
-    }
-
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -91,9 +71,13 @@ export async function PATCH(
     }
 
     const { prisma } = await import("@tradeos/db");
+    const updateData = { ...parsed.data } as any;
+    if (updateData.tags !== undefined) {
+      updateData.tags = toJsonString(updateData.tags);
+    }
     const strategy = await prisma.strategy.updateMany({
       where: { id: params.id, userId: session.user.id },
-      data: parsed.data,
+      data: updateData,
     });
 
     if (strategy.count === 0) {
@@ -107,7 +91,7 @@ export async function PATCH(
       where: { id: params.id },
     });
 
-    return NextResponse.json(updated);
+    return NextResponse.json(parseStrategyArrays(updated as any));
   } catch (error) {
     console.error("Error updating strategy:", error);
     return NextResponse.json(
@@ -123,10 +107,6 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    if (isDemoMode()) {
-      return NextResponse.json({ success: true });
-    }
-
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

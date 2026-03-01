@@ -5,9 +5,19 @@ import { TIER_LIMITS } from "@tradeos/shared";
 
 export type UserTier = "FREE" | "PRO" | "AGENCY";
 
+interface TierLimits {
+  maxStrategies: number;
+  maxImportsPerMonth: number;
+  aiAnalysesPerMonth: number;
+  maxPortfolios: number;
+  webhookAccess: boolean;
+  dataRetentionDays: number;
+  maxSubAccounts?: number;
+}
+
 interface SubscriptionInfo {
   tier: UserTier;
-  limits: typeof TIER_LIMITS.FREE;
+  limits: TierLimits;
   canCreateStrategy: (currentCount: number) => boolean;
   canImportBacktest: (currentMonthlyCount: number) => boolean;
   canUseAI: boolean;

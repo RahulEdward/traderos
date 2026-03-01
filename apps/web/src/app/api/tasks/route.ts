@@ -1,27 +1,10 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { createTaskSchema } from "@tradeos/shared";
-import { isDemoMode, DEMO_TASKS } from "@/lib/mock-data";
 
 // GET all tasks for user
 export async function GET(req: Request) {
   try {
-    if (isDemoMode()) {
-      const { searchParams } = new URL(req.url);
-      const status = searchParams.get("status");
-      const priority = searchParams.get("priority");
-      const taskType = searchParams.get("taskType");
-      const strategyId = searchParams.get("strategyId");
-
-      let tasks = [...DEMO_TASKS];
-      if (status) tasks = tasks.filter((t) => t.status === status);
-      if (priority) tasks = tasks.filter((t) => t.priority === priority);
-      if (taskType) tasks = tasks.filter((t) => t.taskType === taskType);
-      if (strategyId) tasks = tasks.filter((t) => t.strategyId === strategyId);
-
-      return NextResponse.json(tasks);
-    }
-
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -61,14 +44,6 @@ export async function GET(req: Request) {
 // POST create task
 export async function POST(req: Request) {
   try {
-    if (isDemoMode()) {
-      const body = await req.json();
-      return NextResponse.json(
-        { id: `task-demo-${Date.now()}`, ...body },
-        { status: 201 }
-      );
-    }
-
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

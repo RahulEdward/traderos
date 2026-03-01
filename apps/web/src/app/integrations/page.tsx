@@ -69,11 +69,20 @@ export default function IntegrationsPage() {
   const [creating, setCreating] = useState(false);
   const [bridgeApiKey, setBridgeApiKey] = useState("••••••••••••••••••••");
   const [zerodhaEmail, setZerodhaEmail] = useState("");
-  const [angelEmail, setAngelEmail] = useState("");
   const [notifySubmitted, setNotifySubmitted] = useState<Record<string, boolean>>({});
+
+  // Angel One connection state
+  const [angelConnected, setAngelConnected] = useState(false);
+  const [angelClientCode, setAngelClientCode] = useState("");
+  const [angelPassword, setAngelPassword] = useState("");
+  const [angelTotp, setAngelTotp] = useState("");
+  const [angelConnecting, setAngelConnecting] = useState(false);
+  const [angelError, setAngelError] = useState("");
+  const [angelSavedClientCode, setAngelSavedClientCode] = useState("");
 
   useEffect(() => {
     fetchData();
+    fetchAngelStatus();
   }, []);
 
   const fetchData = async () => {
@@ -128,6 +137,60 @@ export default function IntegrationsPage() {
 
   const getWebhookUrl = (key: string) =>
     `${window.location.origin}/api/webhooks/receive/${key}`;
+
+  // ─── Angel One Functions ────────────────────────────────────
+  const fetchAngelStatus = async () => {
+    try {
+      const res = await fetch("/api/broker/angelone/auth");
+      if (res.ok) {
+        const data = await res.json();
+        setAngelConnected(data.connected);
+        if (data.clientCode) setAngelSavedClientCode(data.clientCode);
+      }
+    } catch {
+      // Ignore - not connected
+    }
+  };
+
+  const connectAngelOne = async () => {
+    if (!angelClientCode || !angelPassword || !angelTotp) return;
+    setAngelConnecting(true);
+    setAngelError("");
+    try {
+      const res = await fetch("/api/broker/angelone/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clientCode: angelClientCode,
+          password: angelPassword,
+          totp: angelTotp,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setAngelConnected(true);
+        setAngelSavedClientCode(angelClientCode);
+        setAngelPassword("");
+        setAngelTotp("");
+      } else {
+        setAngelError(data.error || "Connection failed");
+      }
+    } catch (error) {
+      setAngelError((error as Error).message);
+    } finally {
+      setAngelConnecting(false);
+    }
+  };
+
+  const disconnectAngelOne = async () => {
+    try {
+      await fetch("/api/broker/angelone/auth", { method: "DELETE" });
+      setAngelConnected(false);
+      setAngelSavedClientCode("");
+    } catch {
+      // Ignore
+    }
+  };
 
   if (loading) {
     return (
@@ -393,8 +456,8 @@ export default function IntegrationsPage() {
           </div>
         </div>
 
-        {/* Angel One - Coming Soon */}
-        <div className="bg-[#0F1629] border border-[#1E2A45] rounded-xl p-6 opacity-60">
+        {/* Angel One Integration */}
+        <div className="bg-[#0F1629] border border-[#1E2A45] rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-[#e85d04]/10 rounded-lg flex items-center justify-center">
@@ -405,35 +468,133 @@ export default function IntegrationsPage() {
                 <p className="text-xs text-[#94A3B8]">SmartAPI Integration</p>
               </div>
             </div>
-            <Badge className="bg-[#6366F1]/20 text-[#6366F1] border-[#6366F1]">Coming Soon</Badge>
+            <Badge className={angelConnected
+              ? "bg-[#10B981]/20 text-[#10B981] border-[#10B981]"
+              : "bg-[#475569]/20 text-[#475569] border-[#475569]"
+            }>
+              {angelConnected ? (
+                <><Wifi className="h-3 w-3 mr-1" /> Connected</>
+              ) : (
+                <><WifiOff className="h-3 w-3 mr-1" /> Disconnected</>
+              )}
+            </Badge>
           </div>
-          <p className="text-sm text-[#475569]">
-            Connect your Angel One account for automated trade logging and portfolio sync.
-          </p>
-          <div className="mt-4">
-            {notifySubmitted.angel ? (
-              <p className="text-sm text-[#10B981] flex items-center gap-1">
-                <CheckCircle className="h-4 w-4" /> We&apos;ll notify you when Angel One integration is ready!
-              </p>
-            ) : (
-              <>
-                <Input
-                  placeholder="Enter email to get notified"
-                  className="bg-[#0A0E1A] border-[#1E2A45]"
-                  value={angelEmail}
-                  onChange={(e) => setAngelEmail(e.target.value)}
-                />
-                <Button
-                  variant="outline"
-                  className="w-full mt-2"
-                  disabled={!angelEmail.includes("@")}
-                  onClick={() => setNotifySubmitted((p) => ({ ...p, angel: true }))}
-                >
-                  Notify Me When Available
-                </Button>
-              </>
-            )}
-          </div>
+
+          {angelConnected ? (
+            <div className="space-y-4">
+              <div className="bg-[#0A0E1A] border border-[#1E2A45] rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-[#F1F5F9]">Account Connected</span>
+                  <Badge variant="secondary" className="text-xs font-mono">
+                    {angelSavedClientCode}
+                  </Badge>
+                </div>
+                <p className="text-xs text-[#94A3B8] mb-3">
+                  Your Angel One account is connected. Live market data, order placement, and portfolio sync are active.
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => {
+                      setAngelConnected(false);
+                    }}
+                  >
+                    <RefreshCw className="h-3.5 w-3.5 mr-1" />
+                    Re-authenticate
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-[#EF4444] hover:text-[#EF4444] hover:bg-[#EF4444]/10"
+                    onClick={disconnectAngelOne}
+                  >
+                    <WifiOff className="h-3.5 w-3.5 mr-1" />
+                    Disconnect
+                  </Button>
+                </div>
+              </div>
+
+              <div className="bg-[#0A0E1A] border border-[#1E2A45] rounded-lg p-4">
+                <h4 className="text-sm font-medium text-[#F1F5F9] mb-2">Available Features</h4>
+                <div className="grid grid-cols-2 gap-2 text-xs text-[#94A3B8]">
+                  <span className="flex items-center gap-1"><CheckCircle className="h-3 w-3 text-[#10B981]" /> Live Market Data</span>
+                  <span className="flex items-center gap-1"><CheckCircle className="h-3 w-3 text-[#10B981]" /> Historical Candles</span>
+                  <span className="flex items-center gap-1"><CheckCircle className="h-3 w-3 text-[#10B981]" /> Order Placement</span>
+                  <span className="flex items-center gap-1"><CheckCircle className="h-3 w-3 text-[#10B981]" /> Position Tracking</span>
+                  <span className="flex items-center gap-1"><CheckCircle className="h-3 w-3 text-[#10B981]" /> Holdings Sync</span>
+                  <span className="flex items-center gap-1"><CheckCircle className="h-3 w-3 text-[#10B981]" /> Funds & Margin</span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="bg-[#0A0E1A] border border-[#1E2A45] rounded-lg p-4">
+                <h4 className="text-sm font-medium text-[#F1F5F9] mb-3">Connect Your Account</h4>
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs text-[#94A3B8] mb-1 block">Client Code</label>
+                    <Input
+                      value={angelClientCode}
+                      onChange={(e) => setAngelClientCode(e.target.value)}
+                      placeholder="Your Angel One client code"
+                      className="bg-[#080C18] border-[#1E2A45] text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-[#94A3B8] mb-1 block">MPIN / Password</label>
+                    <Input
+                      type="password"
+                      value={angelPassword}
+                      onChange={(e) => setAngelPassword(e.target.value)}
+                      placeholder="Your trading PIN"
+                      className="bg-[#080C18] border-[#1E2A45] text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-[#94A3B8] mb-1 block">TOTP Code</label>
+                    <Input
+                      value={angelTotp}
+                      onChange={(e) => setAngelTotp(e.target.value)}
+                      placeholder="6-digit TOTP from authenticator app"
+                      maxLength={6}
+                      className="bg-[#080C18] border-[#1E2A45] text-sm font-mono"
+                    />
+                  </div>
+
+                  {angelError && (
+                    <p className="text-xs text-[#EF4444] flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" /> {angelError}
+                    </p>
+                  )}
+
+                  <Button
+                    className="w-full bg-[#e85d04] hover:bg-[#e85d04]/90"
+                    onClick={connectAngelOne}
+                    disabled={angelConnecting || !angelClientCode || !angelPassword || !angelTotp}
+                  >
+                    {angelConnecting ? (
+                      <><RefreshCw className="h-4 w-4 mr-2 animate-spin" /> Connecting...</>
+                    ) : (
+                      <><Link2 className="h-4 w-4 mr-2" /> Connect Angel One</>
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="bg-[#0A0E1A] border border-[#1E2A45] rounded-lg p-4">
+                <h4 className="text-sm font-medium text-[#F1F5F9] mb-2">Setup Instructions</h4>
+                <ol className="text-xs text-[#94A3B8] space-y-1.5 list-decimal pl-4">
+                  <li>Create a SmartAPI app at <span className="text-[#3B82F6]">smartapi.angelone.in</span></li>
+                  <li>Copy your API Key and set it in server env as ANGELONE_API_KEY</li>
+                  <li>Enable TOTP in your Angel One mobile app (Settings &gt; Security)</li>
+                  <li>Enter your client code, MPIN, and TOTP above to connect</li>
+                  <li>Re-authenticate daily as Angel One tokens expire at EOD</li>
+                </ol>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

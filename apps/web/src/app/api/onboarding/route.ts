@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@tradeos/db";
 import { onboardingSchema } from "@tradeos/shared";
+import { toJsonString } from "@/lib/db-utils";
 
 export async function POST(req: Request) {
   try {
@@ -26,7 +27,7 @@ export async function POST(req: Request) {
       where: { id: session.user.id },
       data: {
         tradingPlatform,
-        marketFocus,
+        marketFocus: toJsonString(marketFocus),
         riskProfile,
         onboardingCompleted: true,
       },

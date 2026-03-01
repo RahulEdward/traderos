@@ -20,18 +20,18 @@ export const DEMO_STRATEGIES = [
   {
     id: "strat-001",
     userId: DEMO_USER.id,
-    name: "Nifty 50 Breakout",
+    name: "Nifty 50 Momentum",
     description:
-      "Breakout strategy on Nifty 50 index using 15-minute candles. Enters on breakout above previous day high with volume confirmation.",
+      "Momentum strategy on Nifty 50 index using 15-minute candles. Enters on directional move with volume confirmation and RSI filter.",
     market: "NSE Equity",
     instrument: "NIFTY 50",
     timeframe: "15m",
     entryLogic:
-      "Enter long when price breaks above PDH with volume > 1.5x average. RSI must be above 50.",
+      "Enter long when 15m close > VWAP + ATR(14)*0.5 with volume > 1.5x average. RSI(14) must be above 55.",
     exitLogic:
       "Exit at 1.5:1 RR or trailing stop of 0.5%. Time-based exit at 3:00 PM IST.",
     status: "LIVE" as const,
-    tags: ["breakout", "nifty", "intraday"],
+    tags: ["momentum", "nifty", "intraday"],
     version: 3,
     archivedAt: null,
     createdAt: new Date("2024-08-15"),
@@ -73,7 +73,7 @@ export const DEMO_STRATEGIES = [
         readinessScore: 82,
         readinessVerdict: "READY" as const,
         summary:
-          "Strong breakout strategy with consistent performance across market conditions. The 58.47% win rate combined with 1.82 profit factor indicates a robust edge.",
+          "Strong momentum strategy with consistent performance across market conditions. The 58.47% win rate combined with 1.82 profit factor indicates a robust edge. PSR of 0.97 confirms statistical significance.",
         strengths: [
           "Excellent profit factor of 1.82 indicates strong risk-reward",
           "Max drawdown under 10% shows good risk management",
@@ -247,9 +247,9 @@ export const DEMO_STRATEGIES = [
   {
     id: "strat-005",
     userId: DEMO_USER.id,
-    name: "HDFC Bank Range Breakout",
+    name: "HDFC Bank ORB Strategy",
     description:
-      "Opening range breakout on HDFC Bank using first 30-minute range.",
+      "Opening Range strategy on HDFC Bank using first 30-minute range.",
     market: "NSE Equity",
     instrument: "HDFCBANK",
     timeframe: "30m",
@@ -357,7 +357,7 @@ export const DEMO_TASKS = [
     dueDate: new Date("2025-03-01"),
     createdAt: new Date("2025-01-17"),
     completedAt: null,
-    strategy: { id: "strat-001", name: "Nifty 50 Breakout" },
+    strategy: { id: "strat-001", name: "Nifty 50 Momentum" },
   },
   {
     id: "task-002",
@@ -399,7 +399,7 @@ export const DEMO_TASKS = [
     dueDate: new Date("2025-02-15"),
     createdAt: new Date("2025-01-20"),
     completedAt: new Date("2025-02-14"),
-    strategy: { id: "strat-001", name: "Nifty 50 Breakout" },
+    strategy: { id: "strat-001", name: "Nifty 50 Momentum" },
   },
   {
     id: "task-005",
@@ -413,7 +413,7 @@ export const DEMO_TASKS = [
     dueDate: new Date("2025-02-26"),
     createdAt: new Date("2025-02-22"),
     completedAt: null,
-    strategy: { id: "strat-005", name: "HDFC Bank Range Breakout" },
+    strategy: { id: "strat-005", name: "HDFC Bank ORB Strategy" },
   },
 ];
 
@@ -423,12 +423,12 @@ export const DEMO_NOTIFICATIONS = [
     userId: DEMO_USER.id,
     type: "ai_analysis_complete",
     title: "AI Analysis Complete",
-    body: "AI analysis for Nifty 50 Breakout is ready. Score: 78/100 — Ready to Go Live",
+    body: "AI analysis for Nifty 50 Momentum is ready. Score: 78/100 — Ready to Go Live",
     read: false,
     createdAt: new Date("2025-02-24T10:30:00"),
     strategyId: "strat-001",
     portfolioId: null,
-    strategy: { id: "strat-001", name: "Nifty 50 Breakout" },
+    strategy: { id: "strat-001", name: "Nifty 50 Momentum" },
   },
   {
     id: "notif-002",
@@ -452,19 +452,19 @@ export const DEMO_NOTIFICATIONS = [
     createdAt: new Date("2025-02-22T09:00:00"),
     strategyId: "strat-005",
     portfolioId: null,
-    strategy: { id: "strat-005", name: "HDFC Bank Range Breakout" },
+    strategy: { id: "strat-005", name: "HDFC Bank ORB Strategy" },
   },
   {
     id: "notif-004",
     userId: DEMO_USER.id,
     type: "strategy_status_changed",
     title: "Strategy Status Updated",
-    body: "Nifty 50 Breakout moved to Live status.",
+    body: "Nifty 50 Momentum moved to Live status.",
     read: true,
     createdAt: new Date("2025-02-20T16:45:00"),
     strategyId: "strat-001",
     portfolioId: null,
-    strategy: { id: "strat-001", name: "Nifty 50 Breakout" },
+    strategy: { id: "strat-001", name: "Nifty 50 Momentum" },
   },
   {
     id: "notif-005",

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@tradeos/db";
 import Anthropic from "@anthropic-ai/sdk";
+import { parseJsonArray } from "@/lib/db-utils";
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY || "",
@@ -68,8 +69,8 @@ Backtest Results:
 ${latestAnalysis ? `
 AI Analysis (Score: ${latestAnalysis.overallScore}/100, Verdict: ${latestAnalysis.readinessVerdict}):
 ${latestAnalysis.summary}
-Strengths: ${latestAnalysis.strengths.join(", ")}
-Weaknesses: ${latestAnalysis.weaknesses.join(", ")}
+Strengths: ${parseJsonArray(latestAnalysis.strengths).join(", ")}
+Weaknesses: ${parseJsonArray(latestAnalysis.weaknesses).join(", ")}
 ` : ""}
 
 Be concise, specific to Indian markets, and actionable. Use INR for monetary values. Keep responses focused and under 300 words.`;

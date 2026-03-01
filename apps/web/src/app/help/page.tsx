@@ -29,7 +29,7 @@ const FAQ_ITEMS = [
     questions: [
       {
         q: "How do I create my first strategy?",
-        a: "Go to Strategies from the sidebar, click 'New Strategy', fill in the name, instrument (e.g., NIFTY, BANKNIFTY), timeframe, and entry/exit rules. You can then import backtest data to track performance.",
+        a: "Go to Strategies from the top navigation bar, click 'New Strategy', fill in the name, instrument (e.g., NIFTY, BANKNIFTY), timeframe, and entry/exit rules. You can then import backtest data to track performance.",
       },
       {
         q: "What is Demo Mode?",
@@ -84,7 +84,7 @@ const FAQ_ITEMS = [
       },
       {
         q: "How does billing work?",
-        a: "Billing is handled via Razorpay. Plans are billed monthly. You can upgrade, downgrade, or cancel anytime from Settings > Billing. GST (18%) is added to all plans.",
+        a: "Billing is handled via PayU. Plans are billed monthly. You can upgrade, downgrade, or cancel anytime from Settings > Billing. GST (18%) is added to all plans.",
       },
       {
         q: "Can I get a refund?",

@@ -1,13 +1,65 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
+import bcrypt from "bcryptjs";
 
 export async function PUT(req: Request) {
   try {
     const body = await req.json();
+
     if (!body.currentPassword || !body.newPassword) {
-      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Current password and new password are required" },
+        { status: 400 }
+      );
     }
+
+    if (body.newPassword.length < 8) {
+      return NextResponse.json(
+        { error: "New password must be at least 8 characters" },
+        { status: 400 }
+      );
+    }
+
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { prisma } = await import("@tradeos/db");
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { hashedPassword: true },
+    });
+
+    if (!user?.hashedPassword) {
+      return NextResponse.json(
+        { error: "Password change not available for OAuth accounts" },
+        { status: 400 }
+      );
+    }
+
+    const isValid = await bcrypt.compare(body.currentPassword, user.hashedPassword);
+    if (!isValid) {
+      return NextResponse.json(
+        { error: "Current password is incorrect" },
+        { status: 400 }
+      );
+    }
+
+    const hashedPassword = await bcrypt.hash(body.newPassword, 12);
+
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: { hashedPassword },
+    });
+
     return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ error: "Failed to update password" }, { status: 500 });
+  } catch (error) {
+    console.error("Error updating password:", error);
+    return NextResponse.json(
+      { error: "Failed to update password" },
+      { status: 500 }
+    );
   }
 }

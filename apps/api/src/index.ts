@@ -40,6 +40,10 @@ app.get("/api/health", (_req, res) => {
   });
 });
 
+// Angel One SmartStream routes
+import { createAngelStreamRouter } from "./routes/angelone-stream";
+app.use("/api/stream", createAngelStreamRouter(io));
+
 // Socket.io connection handling
 io.on("connection", (socket) => {
   console.log(`Client connected: ${socket.id}`);

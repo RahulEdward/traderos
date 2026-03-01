@@ -1,29 +1,10 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { createPortfolioSchema } from "@tradeos/shared";
-import { isDemoMode, DEMO_PORTFOLIOS } from "@/lib/mock-data";
 
 // GET all portfolios
 export async function GET() {
   try {
-    if (isDemoMode()) {
-      const enriched = DEMO_PORTFOLIOS.map((p) => {
-        let combinedPnL = 0;
-        for (const ps of p.portfolioStrategies) {
-          const bt = ps.strategy.backtestResults[0];
-          if (bt) {
-            combinedPnL += bt.netProfit * (ps.capitalAllocationPct / 100);
-          }
-        }
-        return {
-          ...p,
-          combinedPnL,
-          strategyCount: p.portfolioStrategies.length,
-        };
-      });
-      return NextResponse.json(enriched);
-    }
-
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -87,14 +68,6 @@ export async function GET() {
 // POST create portfolio
 export async function POST(req: Request) {
   try {
-    if (isDemoMode()) {
-      const body = await req.json();
-      return NextResponse.json(
-        { id: `port-demo-${Date.now()}`, ...body },
-        { status: 201 }
-      );
-    }
-
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

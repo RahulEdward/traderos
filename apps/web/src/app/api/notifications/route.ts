@@ -1,18 +1,9 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { isDemoMode, DEMO_NOTIFICATIONS } from "@/lib/mock-data";
 
 // GET notifications
 export async function GET(req: Request) {
   try {
-    if (isDemoMode()) {
-      const { searchParams } = new URL(req.url);
-      const limit = parseInt(searchParams.get("limit") || "20");
-      const notifications = DEMO_NOTIFICATIONS.slice(0, limit);
-      const unreadCount = DEMO_NOTIFICATIONS.filter((n) => !n.read).length;
-      return NextResponse.json({ notifications, unreadCount });
-    }
-
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -50,10 +41,6 @@ export async function GET(req: Request) {
 // PATCH mark as read
 export async function PATCH(req: Request) {
   try {
-    if (isDemoMode()) {
-      return NextResponse.json({ success: true });
-    }
-
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

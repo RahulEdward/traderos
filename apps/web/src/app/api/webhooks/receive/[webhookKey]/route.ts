@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isDemoMode } from "@/lib/mock-data";
 
 // POST /api/webhooks/receive/:webhookKey
 // Public endpoint - no auth required. Validates webhook key.
@@ -9,10 +8,6 @@ export async function POST(
 ) {
   try {
     const { webhookKey } = await params;
-
-    if (isDemoMode()) {
-      return NextResponse.json({ status: "ok", message: "Webhook received (demo mode)" });
-    }
 
     const { prisma } = await import("@tradeos/db");
 
@@ -73,19 +68,17 @@ export async function POST(
     // Try to log the failure
     try {
       const { webhookKey } = await params;
-      if (!isDemoMode()) {
-        const { prisma } = await import("@tradeos/db");
-        const webhook = await prisma.webhook.findUnique({ where: { webhookKey } });
-        if (webhook) {
-          await prisma.webhookLog.create({
-            data: {
-              webhookId: webhook.id,
-              payload: {},
-              status: "FAILED",
-              errorMessage: (error as Error).message,
-            },
-          });
-        }
+      const { prisma } = await import("@tradeos/db");
+      const webhook = await prisma.webhook.findUnique({ where: { webhookKey } });
+      if (webhook) {
+        await prisma.webhookLog.create({
+          data: {
+            webhookId: webhook.id,
+            payload: {},
+            status: "FAILED",
+            errorMessage: (error as Error).message,
+          },
+        });
       }
     } catch {
       // Silently fail on error logging

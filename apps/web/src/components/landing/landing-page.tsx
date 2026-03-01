@@ -41,39 +41,39 @@ function AnimatedSection({ children, className = "" }: { children: React.ReactNo
 
 const FEATURES = [
   {
+    icon: BarChart3,
+    title: "Robust Backtesting Engine",
+    description: "Walk-Forward, Cross-Validation, and CPCV methods. Deflated Sharpe Ratio, strategy risk analysis — overfitting protection built-in.",
+    color: "#10B981",
+  },
+  {
     icon: Layers,
     title: "Strategy Lifecycle Manager",
-    description: "Track every strategy from idea to live trading. Kanban board view, status tracking, and version history.",
+    description: "Track every strategy from idea to live trading. Kanban board, status tracking, version history, and 20+ performance metrics.",
     color: "#3B82F6",
   },
   {
     icon: Brain,
     title: "AI Analysis Engine",
-    description: "Get Claude-powered analysis of your backtest results. Readiness scoring, strengths, weaknesses, and actionable suggestions.",
+    description: "Claude-powered analysis of your backtests. Readiness scoring, strengths, weaknesses, and actionable improvement suggestions.",
     color: "#8B5CF6",
   },
   {
     icon: Briefcase,
-    title: "Portfolio Manager",
-    description: "Combine strategies into portfolios. Correlation matrix, capital allocation, and combined equity curves.",
+    title: "HRP Portfolio Allocation",
+    description: "Hierarchical Risk Parity — ML-based allocation that outperforms Markowitz. Dendrogram visualization and Monte Carlo validation.",
     color: "#06B6D4",
   },
   {
-    icon: BarChart3,
-    title: "Backtest Analyzer",
-    description: "Import CSV from TradingView or Amibroker. Auto-calculate Sharpe, Sortino, Calmar, and 12+ metrics.",
-    color: "#10B981",
-  },
-  {
     icon: Activity,
-    title: "Live Trading Tracker",
-    description: "Log real trades and compare against backtest performance. Slippage analysis and equity curve comparison.",
+    title: "Live Trading + Fyers Broker",
+    description: "Connect Fyers broker for live trading. Fetch historical data, place orders, track positions, and compare live vs backtest.",
     color: "#F59E0B",
   },
   {
     icon: Link2,
-    title: "TradingView Integration",
-    description: "Receive webhook alerts from TradingView. Auto-log signals and track strategy triggers in real-time.",
+    title: "Market Data & Integrations",
+    description: "Fetch NSE/BSE OHLCV data from Fyers. TradingView webhooks, Amibroker import, and real-time market streaming.",
     color: "#EF4444",
   },
 ];
@@ -196,7 +196,7 @@ export function LandingPage() {
           >
             The Operating System for
             <br />
-            <span className="text-[#3B82F6]">Indian Breakout Traders</span>
+            <span className="text-[#3B82F6]">Systematic Indian Traders</span>
           </motion.h1>
 
           <motion.p
@@ -205,8 +205,8 @@ export function LandingPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-lg md:text-xl text-[#94A3B8] max-w-3xl mx-auto mb-10"
           >
-            Build, analyze, improve, and manage your breakout strategies —
-            without second-guessing every decision.
+            Build, backtest, analyze, and deploy your trading strategies —
+            with robust statistics that prevent overfitting.
           </motion.p>
 
           <motion.div
@@ -255,7 +255,7 @@ export function LandingPage() {
         <div className="max-w-6xl mx-auto">
           <AnimatedSection className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              3 problems every breakout trader faces
+              3 problems every systematic trader faces
             </h2>
           </AnimatedSection>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -394,7 +394,7 @@ export function LandingPage() {
               Start building your trading system today
             </h2>
             <p className="text-lg text-[#94A3B8] mb-8">
-              Join traders who manage their breakout strategies with TradeOS India.
+              Join traders who build robust, overfitting-proof strategies with TradeOS India.
             </p>
             <Link href="/auth/register">
               <Button size="lg" className="bg-[#3B82F6] hover:bg-[#2563EB] text-base px-10">
@@ -416,7 +416,7 @@ export function LandingPage() {
                 <span className="text-sm text-[#06B6D4]">India</span>
               </div>
               <p className="text-sm text-[#475569]">
-                The Operating System for Indian Breakout Traders
+                The Operating System for Systematic Indian Traders
               </p>
             </div>
             <div>

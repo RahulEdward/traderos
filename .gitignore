@@ -31,6 +31,11 @@ pnpm-debug.log*
 
 # Prisma
 packages/db/prisma/migrations
+packages/db/prisma/*.db
+packages/db/prisma/*.db-journal
+
+# Claude Code
+.claude/
 
 # Misc
 *.tsbuildinfo

@@ -1,15 +1,9 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { isDemoMode, getDashboardStats } from "@/lib/mock-data";
 
 // GET dashboard stats
 export async function GET() {
   try {
-    // Demo mode
-    if (isDemoMode()) {
-      return NextResponse.json(getDashboardStats());
-    }
-
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

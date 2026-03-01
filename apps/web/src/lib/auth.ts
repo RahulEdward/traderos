@@ -2,18 +2,11 @@ import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
-import { DEMO_USER, isDemoMode } from "./mock-data";
-
-function getAdapter() {
-  if (isDemoMode()) return undefined;
-  // Dynamic require to avoid loading Prisma when in demo mode
-  const { PrismaAdapter } = require("@auth/prisma-adapter");
-  const { prisma } = require("@tradeos/db");
-  return PrismaAdapter(prisma);
-}
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import { prisma } from "@tradeos/db";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: getAdapter(),
+  adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
   pages: {
     signIn: "/auth/login",
@@ -37,18 +30,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Email and password are required");
         }
-
-        // Demo mode: accept any credentials
-        if (isDemoMode()) {
-          return {
-            id: DEMO_USER.id,
-            email: DEMO_USER.email,
-            name: DEMO_USER.name,
-            image: DEMO_USER.image,
-          };
-        }
-
-        const { prisma } = await import("@tradeos/db");
 
         const user = await prisma.user.findUnique({
           where: { email: credentials.email as string },
@@ -82,18 +63,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.id = user.id;
       }
 
-      // Demo mode: return demo user info
-      if (isDemoMode()) {
-        token.tier = DEMO_USER.tier;
-        token.onboardingCompleted = DEMO_USER.onboardingCompleted;
-        token.name = DEMO_USER.name;
-        token.picture = DEMO_USER.image;
-        return token;
-      }
-
       if (token.id) {
         try {
-          const { prisma } = await import("@tradeos/db");
           const dbUser = await prisma.user.findUnique({
             where: { id: token.id as string },
             select: {

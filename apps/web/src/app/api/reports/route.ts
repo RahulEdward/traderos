@@ -1,48 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { isDemoMode } from "@/lib/mock-data";
-
-function getDemoReports() {
-  return [
-    {
-      id: "rpt-001",
-      type: "STRATEGY",
-      title: "Nifty 50 Breakout — Strategy Report",
-      strategyName: "Nifty 50 Breakout",
-      createdAt: new Date("2025-02-20T10:00:00"),
-      status: "READY",
-      downloadUrl: "#",
-      shareableLink: null,
-    },
-    {
-      id: "rpt-002",
-      type: "PORTFOLIO",
-      title: "Intraday Core Portfolio — Portfolio Report",
-      strategyName: "Intraday Core Portfolio",
-      createdAt: new Date("2025-02-18T14:30:00"),
-      status: "READY",
-      downloadUrl: "#",
-      shareableLink: "https://tradeosindia.com/reports/share/abc123",
-    },
-    {
-      id: "rpt-003",
-      type: "WEEKLY",
-      title: "Weekly Summary — Feb 10-16, 2025",
-      strategyName: null,
-      createdAt: new Date("2025-02-17T09:00:00"),
-      status: "READY",
-      downloadUrl: "#",
-      shareableLink: null,
-    },
-  ];
-}
 
 export async function GET() {
   try {
-    if (isDemoMode()) {
-      return NextResponse.json({ reports: getDemoReports() });
-    }
-
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -58,14 +18,6 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    if (isDemoMode()) {
-      return NextResponse.json({
-        id: "rpt-new",
-        status: "GENERATING",
-        message: "Report generation started (demo mode)",
-      });
-    }
-
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

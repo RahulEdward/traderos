@@ -3,95 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
-}
-
-enum UserTier {
-  FREE
-  PRO
-  AGENCY
-}
-
-enum StrategyStatus {
-  IDEA
-  IN_DEVELOPMENT
-  BACKTESTING
-  REVIEW
-  PAPER_TRADING
-  LIVE
-  PAUSED
-  RETIRED
-}
-
-enum SourcePlatform {
-  TRADINGVIEW
-  AMIBROKER
-  CUSTOM
-}
-
-enum TradeDirection {
-  LONG
-  SHORT
-}
-
-enum ReadinessVerdict {
-  READY
-  NEEDS_WORK
-  NOT_READY
-}
-
-enum PortfolioStatus {
-  ACTIVE
-  PAUSED
-  ARCHIVED
-}
-
-enum TaskType {
-  BUG_FIX
-  OPTIMIZATION
-  RESEARCH
-  TESTING
-  DOCUMENTATION
-}
-
-enum TaskPriority {
-  CRITICAL
-  HIGH
-  MEDIUM
-  LOW
-}
-
-enum TaskStatus {
-  TODO
-  IN_PROGRESS
-  DONE
-  SKIPPED
-}
-
-enum WebhookLogStatus {
-  SUCCESS
-  FAILED
-}
-
-enum IntegrationPlatform {
-  TRADINGVIEW
-  AMIBROKER
-  ANGELONE
-  ZERODHA
-  FYERS
-}
-
-enum IntegrationStatus {
-  CONNECTED
-  DISCONNECTED
-}
-
-enum SubscriptionStatus {
-  ACTIVE
-  CANCELLED
-  EXPIRED
-  PAST_DUE
 }
 
 // ─── NextAuth Models ───────────────────────────────────────────────
@@ -102,12 +15,12 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
+  refresh_token     String?
+  access_token      String?
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String? @db.Text
+  id_token          String?
   session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -145,14 +58,15 @@ model User {
   image               String?
   hashedPassword      String?
   emailVerified       DateTime?
-  tier                UserTier  @default(FREE)
+  tier                String    @default("FREE")
   timezone            String    @default("Asia/Kolkata")
   currency            String    @default("INR")
   riskProfile         String?
   onboardingCompleted Boolean   @default(false)
   tradingPlatform     String?
-  marketFocus         String[]
-  razorpayCustomerId  String?
+  marketFocus         String    @default("[]")
+  notificationPrefs   String?
+  payuCustomerId      String?
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
@@ -166,26 +80,29 @@ model User {
   notifications      Notification[]
   integrationSettings IntegrationSetting[]
   subscriptions      Subscription[]
+  watchlist          Watchlist[]
+  downloadJobs       DataDownloadJob[]
+  backtestRuns       BacktestRun[]
 
   @@map("users")
 }
 
 model Strategy {
-  id          String         @id @default(cuid())
+  id          String   @id @default(cuid())
   userId      String
   name        String
-  description String?        @db.Text
+  description String?
   market      String?
   instrument  String?
   timeframe   String?
-  entryLogic  String?        @db.Text
-  exitLogic   String?        @db.Text
-  status      StrategyStatus @default(IDEA)
-  tags        String[]
-  version     Int            @default(1)
+  entryLogic  String?
+  exitLogic   String?
+  status      String   @default("IDEA")
+  tags        String   @default("[]")
+  version     Int      @default(1)
   archivedAt  DateTime?
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   backtestResults   BacktestResult[]
@@ -195,35 +112,47 @@ model Strategy {
   webhooks          Webhook[]
   notifications     Notification[]
   portfolioStrategies PortfolioStrategy[]
+  backtestRuns      BacktestRun[]
 
   @@map("strategies")
 }
 
 model BacktestResult {
-  id              String         @id @default(cuid())
+  id              String   @id @default(cuid())
   strategyId      String
   versionNumber   Int
-  importedAt      DateTime       @default(now())
-  sourcePlatform  SourcePlatform @default(CUSTOM)
+  importedAt      DateTime @default(now())
+  sourcePlatform  String   @default("CUSTOM")
   rawFileUrl      String?
-  totalTrades     Int            @default(0)
-  winRate         Float          @default(0)
-  profitFactor    Float          @default(0)
-  netProfit       Float          @default(0)
-  maxDrawdown     Float          @default(0)
-  maxDrawdownPct  Float          @default(0)
-  sharpeRatio     Float          @default(0)
-  sortinoRatio    Float          @default(0)
-  calmarRatio     Float          @default(0)
-  expectancy      Float          @default(0)
-  avgWin          Float          @default(0)
-  avgLoss         Float          @default(0)
-  bestTrade       Float          @default(0)
-  worstTrade      Float          @default(0)
-  recoveryFactor  Float          @default(0)
+  totalTrades     Int      @default(0)
+  winRate         Float    @default(0)
+  profitFactor    Float    @default(0)
+  netProfit       Float    @default(0)
+  maxDrawdown     Float    @default(0)
+  maxDrawdownPct  Float    @default(0)
+  sharpeRatio     Float    @default(0)
+  sortinoRatio    Float    @default(0)
+  calmarRatio     Float    @default(0)
+  expectancy      Float    @default(0)
+  avgWin          Float    @default(0)
+  avgLoss         Float    @default(0)
+  bestTrade       Float    @default(0)
+  worstTrade      Float    @default(0)
+  recoveryFactor  Float    @default(0)
+  psr             Float?
+  dsr             Float?
+  hhiPositive     Float?
+  hhiNegative     Float?
+  hhiTime         Float?
+  drawdown95      Float?
+  tuw95           Float?
+  strategyRisk    Float?
+  impliedPrecision Float?
+  frequencyOfBets Float?
+  ratioOfLongs    Float?
   startDate       DateTime?
   endDate         DateTime?
-  notes           String?        @db.Text
+  notes           String?
 
   strategy   Strategy     @relation(fields: [strategyId], references: [id], onDelete: Cascade)
   trades     Trade[]
@@ -233,17 +162,17 @@ model BacktestResult {
 }
 
 model Trade {
-  id               String         @id @default(cuid())
+  id               String   @id @default(cuid())
   backtestResultId String
   tradeNumber      Int
   entryDate        DateTime
   exitDate         DateTime?
-  direction        TradeDirection @default(LONG)
+  direction        String   @default("LONG")
   entryPrice       Float
   exitPrice        Float?
-  profitLoss       Float          @default(0)
-  profitLossPct    Float          @default(0)
-  holdingPeriod    Int            @default(0)
+  profitLoss       Float    @default(0)
+  profitLossPct    Float    @default(0)
+  holdingPeriod    Int      @default(0)
   symbol           String?
 
   backtestResult BacktestResult @relation(fields: [backtestResultId], references: [id], onDelete: Cascade)
@@ -252,20 +181,20 @@ model Trade {
 }
 
 model AiAnalysis {
-  id                String           @id @default(cuid())
+  id                String   @id @default(cuid())
   strategyId        String
   backtestResultId  String?
-  createdAt         DateTime         @default(now())
-  overallScore      Int              @default(0)
-  readinessScore    Int              @default(0)
-  readinessVerdict  ReadinessVerdict @default(NOT_READY)
-  summary           String?          @db.Text
-  strengths         String[]
-  weaknesses        String[]
-  suggestions       String[]
-  riskNotes         String?          @db.Text
-  marketRegimeNotes String?          @db.Text
-  rawResponse       Json?
+  createdAt         DateTime @default(now())
+  overallScore      Int      @default(0)
+  readinessScore    Int      @default(0)
+  readinessVerdict  String   @default("NOT_READY")
+  summary           String?
+  strengths         String   @default("[]")
+  weaknesses        String   @default("[]")
+  suggestions       String   @default("[]")
+  riskNotes         String?
+  marketRegimeNotes String?
+  rawResponse       String?
 
   strategy       Strategy        @relation(fields: [strategyId], references: [id], onDelete: Cascade)
   backtestResult BacktestResult? @relation(fields: [backtestResultId], references: [id], onDelete: SetNull)
@@ -274,13 +203,13 @@ model AiAnalysis {
 }
 
 model Portfolio {
-  id          String          @id @default(cuid())
+  id          String   @id @default(cuid())
   userId      String
   name        String
-  description String?         @db.Text
-  status      PortfolioStatus @default(ACTIVE)
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  description String?
+  status      String   @default("ACTIVE")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   portfolioStrategies PortfolioStrategy[]
@@ -304,16 +233,16 @@ model PortfolioStrategy {
 }
 
 model Task {
-  id          String       @id @default(cuid())
+  id          String    @id @default(cuid())
   strategyId  String?
   userId      String
   title       String
-  description String?      @db.Text
-  taskType    TaskType     @default(RESEARCH)
-  priority    TaskPriority @default(MEDIUM)
-  status      TaskStatus   @default(TODO)
+  description String?
+  taskType    String    @default("RESEARCH")
+  priority    String    @default("MEDIUM")
+  status      String    @default("TODO")
   dueDate     DateTime?
-  createdAt   DateTime     @default(now())
+  createdAt   DateTime  @default(now())
   completedAt DateTime?
 
   strategy Strategy? @relation(fields: [strategyId], references: [id], onDelete: SetNull)
@@ -323,22 +252,22 @@ model Task {
 }
 
 model LiveTrade {
-  id            String         @id @default(cuid())
+  id            String    @id @default(cuid())
   strategyId    String
   userId        String
   entryDate     DateTime
   exitDate      DateTime?
   symbol        String
-  direction     TradeDirection @default(LONG)
+  direction     String    @default("LONG")
   entryPrice    Float
   exitPrice     Float?
-  quantity      Int            @default(0)
-  grossPnl      Float          @default(0)
-  netPnl        Float          @default(0)
+  quantity      Int       @default(0)
+  grossPnl      Float     @default(0)
+  netPnl        Float     @default(0)
   broker        String?
-  notes         String?        @db.Text
+  notes         String?
   screenshotUrl String?
-  createdAt     DateTime       @default(now())
+  createdAt     DateTime  @default(now())
 
   strategy Strategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -364,11 +293,11 @@ model Webhook {
 }
 
 model WebhookLog {
-  id           String           @id @default(cuid())
+  id           String   @id @default(cuid())
   webhookId    String
-  receivedAt   DateTime         @default(now())
-  payload      Json?
-  status       WebhookLogStatus @default(SUCCESS)
+  receivedAt   DateTime @default(now())
+  payload      String?
+  status       String   @default("SUCCESS")
   errorMessage String?
   responseTime Int?
 
@@ -378,13 +307,13 @@ model WebhookLog {
 }
 
 model Notification {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   userId      String
   type        String
   title       String
-  body        String?   @db.Text
-  read        Boolean   @default(false)
-  createdAt   DateTime  @default(now())
+  body        String?
+  read        Boolean  @default(false)
+  createdAt   DateTime @default(now())
   strategyId  String?
   portfolioId String?
 
@@ -396,13 +325,13 @@ model Notification {
 }
 
 model IntegrationSetting {
-  id              String              @id @default(cuid())
+  id              String   @id @default(cuid())
   userId          String
-  platform        IntegrationPlatform
+  platform        String
   apiKeyEncrypted String?
-  status          IntegrationStatus   @default(DISCONNECTED)
+  status          String   @default("DISCONNECTED")
   lastSyncAt      DateTime?
-  configJson      Json?
+  configJson      String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -411,16 +340,146 @@ model IntegrationSetting {
 }
 
 model Subscription {
-  id                      String             @id @default(cuid())
+  id                      String    @id @default(cuid())
   userId                  String
-  plan                    UserTier           @default(FREE)
-  razorpaySubscriptionId  String?
-  status                  SubscriptionStatus @default(ACTIVE)
+  plan                    String    @default("FREE")
+  payuTransactionId       String?
+  payuPaymentId           String?
+  status                  String    @default("ACTIVE")
   currentPeriodStart      DateTime?
   currentPeriodEnd        DateTime?
-  createdAt               DateTime           @default(now())
+  createdAt               DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("subscriptions")
+}
+
+// ─── Historical Data Models ────────────────────────────────────────
+
+model Watchlist {
+  id             String   @id @default(cuid())
+  userId         String
+  symbol         String
+  exchange       String
+  instrumentType String?
+  expiry         String?
+  strike         Float?
+  lotSize        Int?
+  tickSize       Float?
+  brokerSymbol   String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, symbol, exchange])
+  @@index([symbol])
+  @@index([exchange])
+  @@map("watchlist")
+}
+
+model HistoricalCandle {
+  id        String   @id @default(cuid())
+  symbol    String
+  exchange  String
+  timestamp DateTime
+  open      Float
+  high      Float
+  low       Float
+  close     Float
+  volume    Float    @default(0)
+  oi        Float?
+  interval  String   @default("DAILY")
+
+  @@unique([symbol, exchange, timestamp, interval])
+  @@index([symbol, exchange, interval])
+  @@index([timestamp])
+  @@map("historical_candles")
+}
+
+model DataDownloadJob {
+  id               String    @id @default(cuid())
+  userId           String
+  status           String    @default("PENDING")
+  totalSymbols     Int       @default(0)
+  completedSymbols Int       @default(0)
+  failedSymbols    Int       @default(0)
+  interval         String    @default("DAILY")
+  fromDate         DateTime?
+  toDate           DateTime?
+  errorMessage     String?
+  startedAt        DateTime?
+  completedAt      DateTime?
+  createdAt        DateTime  @default(now())
+
+  user  User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items DataDownloadItem[]
+
+  @@map("data_download_jobs")
+}
+
+model DataDownloadItem {
+  id        String @id @default(cuid())
+  jobId     String
+  symbol    String
+  exchange  String
+  status    String @default("PENDING")
+  rowCount  Int    @default(0)
+  error     String?
+
+  job DataDownloadJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@map("data_download_items")
+}
+
+// ─── Backtest Run Models (AFML-based) ───────────────────────────────
+
+model BacktestRun {
+  id              String   @id @default(cuid())
+  strategyId      String
+  userId          String
+  method          String   @default("WALK_FORWARD")
+  config          String?
+  status          String   @default("PENDING")
+
+  totalBets       Int?
+  frequencyOfBets Float?
+  avgHoldingPeriod Float?
+  ratioOfLongs    Float?
+  pnl             Float?
+  hitRatio        Float?
+  hhiPositive     Float?
+  hhiNegative     Float?
+  hhiTime         Float?
+  maxDrawdown     Float?
+  maxDrawdownPct  Float?
+  drawdown95      Float?
+  tuw95           Float?
+
+  sharpeRatio     Float?
+  annualizedSharpe Float?
+  psr             Float?
+  dsr             Float?
+  sortinoRatio    Float?
+  calmarRatio     Float?
+
+  strategyRisk    Float?
+  impliedPrecision Float?
+
+  profitFactor    Float?
+  expectancy      Float?
+  recoveryFactor  Float?
+
+  numPaths        Int?
+  sharpeDistribution String?  @default("[]")
+  numTrials       Int?
+
+  createdAt       DateTime @default(now())
+  completedAt     DateTime?
+
+  strategy Strategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("backtest_runs")
 }
