@@ -51,8 +51,8 @@ const STATUS_COLORS: Record<string, string> = {
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload) return null;
   return (
-    <div className="bg-[#0F1629] border border-[#1E2A45] rounded-lg p-3 shadow-lg">
-      <p className="text-sm text-[#F1F5F9] font-medium mb-1">{label}</p>
+    <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-3 shadow-lg">
+      <p className="text-sm text-[var(--text-primary)] font-medium mb-1">{label}</p>
       {payload.map((entry: any, i: number) => (
         <p key={i} className="text-xs" style={{ color: entry.color }}>
           {entry.name}: {typeof entry.value === "number" && entry.value > 1000
@@ -87,7 +87,7 @@ export default function AnalyticsPage() {
   if (loading) {
     return (
       <div>
-        <h1 className="text-2xl font-semibold text-[#F1F5F9] mb-6">Analytics</h1>
+        <h1 className="text-2xl font-semibold text-[var(--text-primary)] mb-6">Analytics</h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-[120px]" />
@@ -105,9 +105,9 @@ export default function AnalyticsPage() {
   if (!data) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
-        <BarChart3 className="h-16 w-16 text-[#475569] mb-4" />
-        <h2 className="text-xl font-semibold text-[#F1F5F9] mb-2">No Analytics Data</h2>
-        <p className="text-sm text-[#94A3B8]">
+        <BarChart3 className="h-16 w-16 text-[var(--text-muted)] mb-4" />
+        <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-2">No Analytics Data</h2>
+        <p className="text-sm text-[var(--text-secondary)]">
           Import backtests to see analytics across your strategies.
         </p>
       </div>
@@ -142,8 +142,8 @@ export default function AnalyticsPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-[#F1F5F9]">Analytics</h1>
-        <p className="text-sm text-[#94A3B8] mt-1">
+        <h1 className="text-2xl font-semibold text-[var(--text-primary)]">Analytics</h1>
+        <p className="text-sm text-[var(--text-secondary)] mt-1">
           Cross-strategy performance analytics and insights
         </p>
       </div>
@@ -155,47 +155,51 @@ export default function AnalyticsPage() {
           value={formatINR(aggregateStats.totalNetProfit)}
           icon={DollarSign}
           color="#10B981"
+          tooltip="Combined profit/loss across all your strategies after subtracting losses"
         />
         <MetricCard
           title="Avg Win Rate"
           value={formatPercentage(aggregateStats.avgWinRate)}
           icon={Target}
           color={aggregateStats.avgWinRate > 55 ? "#10B981" : aggregateStats.avgWinRate > 45 ? "#F59E0B" : "#EF4444"}
+          tooltip="Average percentage of winning trades across all strategies"
         />
         <MetricCard
           title="Avg Profit Factor"
           value={aggregateStats.avgProfitFactor.toFixed(2)}
           icon={TrendingUp}
           color="#3B82F6"
+          tooltip="Average ratio of gross profits to gross losses across strategies. Above 1.5 is good"
         />
         <MetricCard
           title="Worst Drawdown"
           value={formatPercentage(aggregateStats.worstDrawdown)}
           icon={ShieldAlert}
           color="#EF4444"
+          tooltip="The largest peak-to-trough equity decline among all strategies. Shows your worst-case scenario"
         />
       </div>
 
       {/* Strategy Comparison Bar Chart */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <div className="bg-[#0F1629] border border-[#1E2A45] rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-[#F1F5F9] mb-4 flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-[#3B82F6]" />
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-6">
+          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-[var(--color-primary)]" />
             Net Profit Comparison
           </h2>
           {strategyComparison?.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={strategyComparison}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1E2A45" />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
                 <XAxis
                   dataKey="name"
-                  tick={{ fill: "#94A3B8", fontSize: 11 }}
+                  tick={{ fill: "var(--text-secondary)", fontSize: 11 }}
                   angle={-20}
                   textAnchor="end"
                   height={60}
                 />
                 <YAxis
-                  tick={{ fill: "#94A3B8", fontSize: 11 }}
+                  tick={{ fill: "var(--text-secondary)", fontSize: 11 }}
                   tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}K`}
                 />
                 <Tooltip content={<CustomTooltip />} />
@@ -203,36 +207,36 @@ export default function AnalyticsPage() {
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-sm text-[#475569] text-center py-10">No backtest data</p>
+            <p className="text-sm text-[var(--text-muted)] text-center py-10">No backtest data</p>
           )}
         </div>
 
         {/* Win Rate Comparison */}
-        <div className="bg-[#0F1629] border border-[#1E2A45] rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-[#F1F5F9] mb-4 flex items-center gap-2">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-6">
+          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
             <Target className="h-5 w-5 text-[#10B981]" />
             Win Rate & Profit Factor
           </h2>
           {strategyComparison?.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={strategyComparison}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1E2A45" />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
                 <XAxis
                   dataKey="name"
-                  tick={{ fill: "#94A3B8", fontSize: 11 }}
+                  tick={{ fill: "var(--text-secondary)", fontSize: 11 }}
                   angle={-20}
                   textAnchor="end"
                   height={60}
                 />
-                <YAxis tick={{ fill: "#94A3B8", fontSize: 11 }} />
+                <YAxis tick={{ fill: "var(--text-secondary)", fontSize: 11 }} />
                 <Tooltip content={<CustomTooltip />} />
-                <Legend wrapperStyle={{ color: "#94A3B8", fontSize: 12 }} />
+                <Legend wrapperStyle={{ color: "var(--text-secondary)", fontSize: 12 }} />
                 <Bar dataKey="winRate" name="Win Rate %" fill="#10B981" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="profitFactor" name="Profit Factor" fill="#06B6D4" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-sm text-[#475569] text-center py-10">No backtest data</p>
+            <p className="text-sm text-[var(--text-muted)] text-center py-10">No backtest data</p>
           )}
         </div>
       </div>
@@ -240,26 +244,26 @@ export default function AnalyticsPage() {
       {/* Equity Curve & Monthly P&L */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Cumulative Equity Curve */}
-        <div className="bg-[#0F1629] border border-[#1E2A45] rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-[#F1F5F9] mb-4 flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-[#3B82F6]" />
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-6">
+          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-[var(--color-primary)]" />
             Cumulative Equity Curve
           </h2>
           {equityCurve?.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={equityCurve}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1E2A45" />
-                <XAxis dataKey="month" tick={{ fill: "#94A3B8", fontSize: 11 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                <XAxis dataKey="month" tick={{ fill: "var(--text-secondary)", fontSize: 11 }} />
                 <YAxis
-                  tick={{ fill: "#94A3B8", fontSize: 11 }}
+                  tick={{ fill: "var(--text-secondary)", fontSize: 11 }}
                   tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}K`}
                 />
                 <Tooltip content={<CustomTooltip />} />
-                <Legend wrapperStyle={{ color: "#94A3B8", fontSize: 12 }} />
+                <Legend wrapperStyle={{ color: "var(--text-secondary)", fontSize: 12 }} />
                 <Line
                   type="monotone"
                   dataKey="Total"
-                  stroke="#F1F5F9"
+                  stroke="var(--text-primary)"
                   strokeWidth={2}
                   dot={false}
                 />
@@ -277,23 +281,23 @@ export default function AnalyticsPage() {
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-sm text-[#475569] text-center py-10">No data available</p>
+            <p className="text-sm text-[var(--text-muted)] text-center py-10">No data available</p>
           )}
         </div>
 
         {/* Monthly P&L */}
-        <div className="bg-[#0F1629] border border-[#1E2A45] rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-[#F1F5F9] mb-4 flex items-center gap-2">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-6">
+          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
             <Activity className="h-5 w-5 text-[#F59E0B]" />
             Monthly P&L
           </h2>
           {monthlyPnL?.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={monthlyPnL}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1E2A45" />
-                <XAxis dataKey="month" tick={{ fill: "#94A3B8", fontSize: 11 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                <XAxis dataKey="month" tick={{ fill: "var(--text-secondary)", fontSize: 11 }} />
                 <YAxis
-                  tick={{ fill: "#94A3B8", fontSize: 11 }}
+                  tick={{ fill: "var(--text-secondary)", fontSize: 11 }}
                   tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}K`}
                 />
                 <Tooltip content={<CustomTooltip />} />
@@ -301,7 +305,7 @@ export default function AnalyticsPage() {
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-sm text-[#475569] text-center py-10">No data available</p>
+            <p className="text-sm text-[var(--text-muted)] text-center py-10">No data available</p>
           )}
         </div>
       </div>
@@ -309,17 +313,17 @@ export default function AnalyticsPage() {
       {/* Risk Radar & Distribution Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Risk Metrics Radar */}
-        <div className="bg-[#0F1629] border border-[#1E2A45] rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-[#F1F5F9] mb-4 flex items-center gap-2">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-6">
+          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
             <ShieldAlert className="h-5 w-5 text-[#EF4444]" />
             Risk Metrics
           </h2>
           {radarData.length > 0 ? (
             <ResponsiveContainer width="100%" height={280}>
               <RadarChart data={radarData}>
-                <PolarGrid stroke="#1E2A45" />
-                <PolarAngleAxis dataKey="metric" tick={{ fill: "#94A3B8", fontSize: 11 }} />
-                <PolarRadiusAxis tick={{ fill: "#475569", fontSize: 10 }} />
+                <PolarGrid stroke="var(--border-color)" />
+                <PolarAngleAxis dataKey="metric" tick={{ fill: "var(--text-secondary)", fontSize: 11 }} />
+                <PolarRadiusAxis tick={{ fill: "var(--text-muted)", fontSize: 10 }} />
                 {strategyNames?.map((name: string, i: number) => (
                   <Radar
                     key={name}
@@ -330,17 +334,17 @@ export default function AnalyticsPage() {
                     fillOpacity={0.15}
                   />
                 ))}
-                <Legend wrapperStyle={{ color: "#94A3B8", fontSize: 11 }} />
+                <Legend wrapperStyle={{ color: "var(--text-secondary)", fontSize: 11 }} />
               </RadarChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-sm text-[#475569] text-center py-10">No risk data</p>
+            <p className="text-sm text-[var(--text-muted)] text-center py-10">No risk data</p>
           )}
         </div>
 
         {/* Status Distribution */}
-        <div className="bg-[#0F1629] border border-[#1E2A45] rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-[#F1F5F9] mb-4 flex items-center gap-2">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-6">
+          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
             <PieChart className="h-5 w-5 text-[#06B6D4]" />
             Strategy Status
           </h2>
@@ -369,21 +373,21 @@ export default function AnalyticsPage() {
                   <div key={i} className="flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2">
                       <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
-                      <span className="text-[#94A3B8]">{entry.name}</span>
+                      <span className="text-[var(--text-secondary)]">{entry.name}</span>
                     </div>
-                    <span className="text-[#F1F5F9] font-mono">{entry.value}</span>
+                    <span className="text-[var(--text-primary)] font-mono">{entry.value}</span>
                   </div>
                 ))}
               </div>
             </div>
           ) : (
-            <p className="text-sm text-[#475569] text-center py-10">No strategies</p>
+            <p className="text-sm text-[var(--text-muted)] text-center py-10">No strategies</p>
           )}
         </div>
 
         {/* Market Distribution */}
-        <div className="bg-[#0F1629] border border-[#1E2A45] rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-[#F1F5F9] mb-4 flex items-center gap-2">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-6">
+          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
             <PieChart className="h-5 w-5 text-[#F59E0B]" />
             Market Distribution
           </h2>
@@ -412,28 +416,28 @@ export default function AnalyticsPage() {
                   <div key={i} className="flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2">
                       <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
-                      <span className="text-[#94A3B8]">{entry.name}</span>
+                      <span className="text-[var(--text-secondary)]">{entry.name}</span>
                     </div>
-                    <span className="text-[#F1F5F9] font-mono">{entry.value}</span>
+                    <span className="text-[var(--text-primary)] font-mono">{entry.value}</span>
                   </div>
                 ))}
               </div>
             </div>
           ) : (
-            <p className="text-sm text-[#475569] text-center py-10">No market data</p>
+            <p className="text-sm text-[var(--text-muted)] text-center py-10">No market data</p>
           )}
         </div>
       </div>
 
       {/* Strategy Comparison Table */}
-      <div className="bg-[#0F1629] border border-[#1E2A45] rounded-xl p-6">
-        <h2 className="text-lg font-semibold text-[#F1F5F9] mb-4">
+      <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-6">
+        <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
           Strategy Performance Table
         </h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-[#1E2A45] text-[#94A3B8] text-xs">
+              <tr className="border-b border-[var(--border-color)] text-[var(--text-secondary)] text-xs">
                 <th className="text-left py-3 px-2">Strategy</th>
                 <th className="text-left py-3 px-2">Status</th>
                 <th className="text-right py-3 px-2">Win Rate</th>
@@ -446,8 +450,8 @@ export default function AnalyticsPage() {
             </thead>
             <tbody>
               {strategyComparison?.map((s: any, i: number) => (
-                <tr key={i} className="border-b border-[#1E2A45]/50 hover:bg-[#080C18] transition-colors">
-                  <td className="py-3 px-2 text-[#F1F5F9] font-medium">{s.name}</td>
+                <tr key={i} className="border-b border-[var(--border-color)]/50 hover:bg-[var(--bg-sidebar)] transition-colors">
+                  <td className="py-3 px-2 text-[var(--text-primary)] font-medium">{s.name}</td>
                   <td className="py-3 px-2">
                     <Badge
                       className="text-xs"
@@ -475,7 +479,7 @@ export default function AnalyticsPage() {
                   <td className={`py-3 px-2 text-right font-mono ${s.sharpeRatio > 1.5 ? "text-[#10B981]" : "text-[#F59E0B]"}`}>
                     {s.sharpeRatio.toFixed(2)}
                   </td>
-                  <td className="py-3 px-2 text-right font-mono text-[#94A3B8]">
+                  <td className="py-3 px-2 text-right font-mono text-[var(--text-secondary)]">
                     {s.totalTrades}
                   </td>
                 </tr>

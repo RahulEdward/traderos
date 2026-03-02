@@ -20,6 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { CreatePortfolioPanel } from "@/components/forms/create-portfolio-panel";
+import { InfoTooltip } from "@/components/shared/info-tooltip";
 import { formatINR } from "@tradeos/shared";
 
 const STATUS_CONFIG = {
@@ -65,14 +66,14 @@ export default function PortfoliosPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-semibold text-[#F1F5F9]">Portfolios</h1>
-          <p className="text-sm text-[#94A3B8] mt-1">
+          <h1 className="text-2xl font-semibold text-[var(--text-primary)]">Portfolios</h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
             Group and manage your strategies together
           </p>
         </div>
         <Button
           onClick={() => setShowCreate(true)}
-          className="bg-[#3B82F6] hover:bg-[#2563EB]"
+          className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)]"
         >
           <Plus className="h-4 w-4 mr-2" /> Create Portfolio
         </Button>
@@ -81,17 +82,17 @@ export default function PortfoliosPage() {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-48 bg-[#0A0A0A] border border-[#1A1A1A] rounded-xl animate-pulse" />
+            <div key={i} className="h-48 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl animate-pulse" />
           ))}
         </div>
       ) : portfolios.length === 0 ? (
-        <div className="text-center py-16 bg-[#0A0A0A] border border-[#1A1A1A] rounded-xl">
-          <Briefcase className="h-10 w-10 text-[#475569] mx-auto mb-3" />
-          <h3 className="text-lg font-medium text-[#F1F5F9] mb-2">No portfolios yet</h3>
-          <p className="text-sm text-[#94A3B8] mb-4">
+        <div className="text-center py-16 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl">
+          <Briefcase className="h-10 w-10 text-[var(--text-muted)] mx-auto mb-3" />
+          <h3 className="text-lg font-medium text-[var(--text-primary)] mb-2">No portfolios yet</h3>
+          <p className="text-sm text-[var(--text-secondary)] mb-4">
             Create a portfolio to group your strategies and track combined performance
           </p>
-          <Button onClick={() => setShowCreate(true)} className="bg-[#3B82F6] hover:bg-[#2563EB]">
+          <Button onClick={() => setShowCreate(true)} className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)]">
             <Plus className="h-4 w-4 mr-2" /> Create Portfolio
           </Button>
         </div>
@@ -102,12 +103,12 @@ export default function PortfoliosPage() {
             return (
               <div
                 key={portfolio.id}
-                className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-xl p-5 hover:border-[#3B82F6]/30 transition-colors cursor-pointer group"
+                className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-5 hover:border-[#3B82F6]/30 transition-colors cursor-pointer group"
                 onClick={() => router.push(`/portfolios/${portfolio.id}`)}
               >
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <h3 className="text-base font-semibold text-[#F1F5F9]">
+                    <h3 className="text-base font-semibold text-[var(--text-primary)]">
                       {portfolio.name}
                     </h3>
                     <Badge
@@ -126,9 +127,9 @@ export default function PortfoliosPage() {
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-[#0A0A0A] border-[#1A1A1A]">
+                    <DropdownMenuContent align="end" className="bg-[var(--bg-card)] border-[var(--border-color)]">
                       <DropdownMenuItem
-                        className="text-[#F1F5F9]"
+                        className="text-[var(--text-primary)]"
                         onClick={(e) => {
                           e.stopPropagation();
                           router.push(`/portfolios/${portfolio.id}`);
@@ -150,20 +151,20 @@ export default function PortfoliosPage() {
                 </div>
 
                 {portfolio.description && (
-                  <p className="text-xs text-[#475569] mb-3 line-clamp-2">
+                  <p className="text-xs text-[var(--text-muted)] mb-3 line-clamp-2">
                     {portfolio.description}
                   </p>
                 )}
 
-                <div className="flex items-center gap-4 mt-auto pt-3 border-t border-[#1A1A1A]">
+                <div className="flex items-center gap-4 mt-auto pt-3 border-t border-[var(--border-color)]">
                   <div>
-                    <p className="text-[10px] text-[#475569]">Strategies</p>
-                    <p className="text-sm font-mono text-[#F1F5F9]">
+                    <p className="text-[10px] text-[var(--text-muted)] flex items-center gap-1">Strategies <InfoTooltip text="Number of trading strategies in this portfolio" /></p>
+                    <p className="text-sm font-mono text-[var(--text-primary)]">
                       {portfolio.strategyCount}
                     </p>
                   </div>
                   <div>
-                    <p className="text-[10px] text-[#475569]">Combined P&L</p>
+                    <p className="text-[10px] text-[var(--text-muted)] flex items-center gap-1">Combined P&L <InfoTooltip text="Total profit/loss across all strategies in this portfolio" /></p>
                     <p
                       className="text-sm font-mono"
                       style={{
@@ -174,8 +175,8 @@ export default function PortfoliosPage() {
                     </p>
                   </div>
                   <div className="ml-auto">
-                    <p className="text-[10px] text-[#475569]">Updated</p>
-                    <p className="text-xs text-[#94A3B8]">
+                    <p className="text-[10px] text-[var(--text-muted)] flex items-center gap-1">Updated <InfoTooltip text="Time since last update to this portfolio" /></p>
+                    <p className="text-xs text-[var(--text-secondary)]">
                       {format(new Date(portfolio.updatedAt), "dd MMM")}
                     </p>
                   </div>

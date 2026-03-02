@@ -277,25 +277,25 @@ export function CsvImportWizard({
                 "border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-colors",
                 isDragActive
                   ? "border-[#3B82F6] bg-[#3B82F6]/5"
-                  : "border-[#1A1A1A] hover:border-[#3B82F6]/50"
+                  : "border-[var(--border-color)] hover:border-[#3B82F6]/50"
               )}
             >
               <input {...getInputProps()} />
-              <Upload className="h-10 w-10 text-[#475569] mx-auto mb-3" />
-              <p className="text-sm text-[#F1F5F9]">
+              <Upload className="h-10 w-10 text-[var(--text-muted)] mx-auto mb-3" />
+              <p className="text-sm text-[var(--text-primary)]">
                 Drag & drop your CSV file here
               </p>
-              <p className="text-xs text-[#475569] mt-1">
+              <p className="text-xs text-[var(--text-muted)] mt-1">
                 or click to browse files
               </p>
             </div>
 
             {file && (
-              <div className="flex items-center gap-3 p-3 bg-[#000000] rounded-lg">
+              <div className="flex items-center gap-3 p-3 bg-[var(--bg-main)] rounded-lg">
                 <FileText className="h-5 w-5 text-[#3B82F6]" />
                 <div>
-                  <p className="text-sm text-[#F1F5F9]">{file.name}</p>
-                  <p className="text-xs text-[#475569]">
+                  <p className="text-sm text-[var(--text-primary)]">{file.name}</p>
+                  <p className="text-xs text-[var(--text-muted)]">
                     {(file.size / 1024).toFixed(1)} KB &middot;{" "}
                     {csvData.length} rows detected
                   </p>
@@ -318,7 +318,7 @@ export function CsvImportWizard({
         {/* Step 2: Column Mapping */}
         {step === 2 && (
           <div className="space-y-4">
-            <p className="text-sm text-[#94A3B8]">
+            <p className="text-sm text-[var(--text-secondary)]">
               Map your CSV columns to the required fields
             </p>
 
@@ -351,12 +351,12 @@ export function CsvImportWizard({
 
             {/* Preview */}
             <div className="overflow-x-auto">
-              <p className="text-xs text-[#475569] mb-2">Preview (first 3 rows)</p>
+              <p className="text-xs text-[var(--text-muted)] mb-2">Preview (first 3 rows)</p>
               <table className="text-xs w-full">
                 <thead>
-                  <tr className="bg-[#050505]">
+                  <tr className="bg-[var(--bg-sidebar)]">
                     {csvHeaders.slice(0, 8).map((h) => (
-                      <th key={h} className="px-2 py-1 text-left text-[#94A3B8]">
+                      <th key={h} className="px-2 py-1 text-left text-[var(--text-secondary)]">
                         {h}
                       </th>
                     ))}
@@ -364,9 +364,9 @@ export function CsvImportWizard({
                 </thead>
                 <tbody>
                   {csvData.slice(0, 3).map((row, i) => (
-                    <tr key={i} className="border-t border-[#1A1A1A]">
+                    <tr key={i} className="border-t border-[var(--border-color)]">
                       {row.slice(0, 8).map((cell, j) => (
-                        <td key={j} className="px-2 py-1 text-[#F1F5F9]">
+                        <td key={j} className="px-2 py-1 text-[var(--text-primary)]">
                           {cell}
                         </td>
                       ))}
@@ -393,16 +393,16 @@ export function CsvImportWizard({
         {/* Step 3: Confirm */}
         {step === 3 && (
           <div className="space-y-4">
-            <div className="bg-[#000000] rounded-xl p-4 space-y-3">
+            <div className="bg-[var(--bg-main)] rounded-xl p-4 space-y-3">
               <div className="flex justify-between">
-                <span className="text-sm text-[#94A3B8]">Trades detected</span>
-                <span className="text-sm font-mono text-[#F1F5F9]">
+                <span className="text-sm text-[var(--text-secondary)]">Trades detected</span>
+                <span className="text-sm font-mono text-[var(--text-primary)]">
                   {csvData.length}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-[#94A3B8]">File</span>
-                <span className="text-sm text-[#F1F5F9]">{file?.name}</span>
+                <span className="text-sm text-[var(--text-secondary)]">File</span>
+                <span className="text-sm text-[var(--text-primary)]">{file?.name}</span>
               </div>
             </div>
 
@@ -452,10 +452,10 @@ export function CsvImportWizard({
         {step === 4 && (
           <div className="text-center py-12">
             <Loader2 className="h-12 w-12 text-[#3B82F6] animate-spin mx-auto mb-4" />
-            <p className="text-[#F1F5F9] font-medium">
+            <p className="text-[var(--text-primary)] font-medium">
               Calculating metrics...
             </p>
-            <p className="text-sm text-[#94A3B8] mt-1">
+            <p className="text-sm text-[var(--text-secondary)] mt-1">
               Processing {csvData.length} trades
             </p>
           </div>
@@ -468,7 +468,7 @@ export function CsvImportWizard({
               <div className="w-12 h-12 bg-[#10B981]/10 rounded-xl flex items-center justify-center mx-auto mb-3">
                 <Check className="h-6 w-6 text-[#10B981]" />
               </div>
-              <p className="text-lg font-medium text-[#F1F5F9]">
+              <p className="text-lg font-medium text-[var(--text-primary)]">
                 Import Successful!
               </p>
             </div>
@@ -480,9 +480,9 @@ export function CsvImportWizard({
                 { label: "Profit Factor", value: importResult.metrics.profitFactor.toFixed(2) },
                 { label: "Net Profit", value: formatINR(importResult.metrics.netProfit) },
               ].map((m) => (
-                <div key={m.label} className="bg-[#000000] rounded-lg p-3">
-                  <p className="text-xs text-[#475569]">{m.label}</p>
-                  <p className="text-lg font-mono font-medium text-[#F1F5F9]">
+                <div key={m.label} className="bg-[var(--bg-main)] rounded-lg p-3">
+                  <p className="text-xs text-[var(--text-muted)]">{m.label}</p>
+                  <p className="text-lg font-mono font-medium text-[var(--text-primary)]">
                     {m.value}
                   </p>
                 </div>

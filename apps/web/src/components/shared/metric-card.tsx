@@ -2,12 +2,14 @@
 
 import { type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { InfoTooltip } from "./info-tooltip";
 
 interface MetricCardProps {
   title: string;
   value: string | number;
   icon: LucideIcon;
   color: string;
+  tooltip?: string;
   change?: { value: number; label: string };
 }
 
@@ -16,14 +18,18 @@ export function MetricCard({
   value,
   icon: Icon,
   color,
+  tooltip,
   change,
 }: MetricCardProps) {
   return (
-    <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-xl p-6 card-hover">
+    <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-6 card-hover">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm text-[#94A3B8] mb-1">{title}</p>
-          <p className="text-2xl font-semibold font-mono text-[#F1F5F9]">
+          <div className="flex items-center gap-1.5 mb-1">
+            <p className="text-sm text-[var(--text-secondary)]">{title}</p>
+            {tooltip && <InfoTooltip text={tooltip} />}
+          </div>
+          <p className="text-2xl font-semibold font-mono text-[var(--text-primary)]">
             {value}
           </p>
           {change && (

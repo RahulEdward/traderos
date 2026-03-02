@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { MetricCard } from "@/components/shared/metric-card";
 import { ActivityFeed } from "@/components/shared/activity-feed";
+import { BrokerStatusBanner } from "@/components/shared/broker-status-banner";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -140,12 +141,12 @@ export default function DashboardPage() {
     <div className="max-w-6xl mx-auto">
       {/* Greeting */}
       <div className="text-center mb-10 mt-2">
-        <h1 className="text-2xl md:text-3xl font-semibold text-[#F1F5F9]">
+        <h1 className="text-2xl md:text-3xl font-semibold text-[var(--text-primary)]">
           What do you want to achieve in{" "}
-          <span className="text-[#3B82F6]">TradeOS</span> today,{" "}
+          <span className="text-[var(--color-primary)]">TradeOS</span> today,{" "}
           <span className="text-[#06B6D4]">{userName}</span>?
         </h1>
-        <p className="text-sm text-[#475569] mt-2">
+        <p className="text-sm text-[var(--text-muted)] mt-2">
           {format(new Date(), "EEEE, dd MMMM yyyy")} &middot;{" "}
           {getGreeting()}
         </p>
@@ -164,7 +165,7 @@ export default function DashboardPage() {
               onClick={() => router.push(card.href)}
               className={cn(
                 "group relative flex items-center gap-4 p-5 rounded-xl border transition-all duration-300",
-                "bg-[#0A0A0A] border-[#1A1A1A]",
+                "bg-[var(--bg-card)] border-[var(--border-color)]",
                 "hover:border-opacity-60 hover:shadow-lg hover:shadow-black/20 hover:-translate-y-0.5"
               )}
             >
@@ -190,7 +191,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Arrow */}
-              <ArrowRight className="h-4 w-4 text-[#1E293B] group-hover:text-[#475569] transition-all group-hover:translate-x-1 shrink-0" />
+              <ArrowRight className="h-4 w-4 text-[#1E293B] group-hover:text-[var(--text-muted)] transition-all group-hover:translate-x-1 shrink-0" />
 
               {/* Hover glow border */}
               <div
@@ -219,6 +220,9 @@ export default function DashboardPage() {
         View My Dashboard Stats
       </motion.button>
 
+      {/* Broker Status */}
+      <BrokerStatusBanner />
+
       {/* Stats Section */}
       <div id="dashboard-stats">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -233,12 +237,14 @@ export default function DashboardPage() {
                 value={stats?.totalStrategies ?? 0}
                 icon={Layers}
                 color="#3B82F6"
+                tooltip="Number of trading strategies you have created across all statuses"
               />
               <MetricCard
                 title="Active Portfolios"
                 value={stats?.activePortfolios ?? 0}
                 icon={Briefcase}
                 color="#06B6D4"
+                tooltip="Portfolios currently being tracked with one or more strategies assigned"
               />
               <MetricCard
                 title="Overall Win Rate"
@@ -249,12 +255,14 @@ export default function DashboardPage() {
                 }
                 icon={TrendingUp}
                 color="#10B981"
+                tooltip="Average win rate across all your backtested strategies. Above 50% means more winners than losers"
               />
               <MetricCard
                 title="Ready to Go Live"
                 value={stats?.strategiesReadyToLive ?? 0}
                 icon={Rocket}
                 color="#3B82F6"
+                tooltip="Strategies that have passed backtesting and are ready for live deployment"
               />
             </>
           )}
@@ -263,8 +271,8 @@ export default function DashboardPage() {
         {/* Two Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
           {/* Recent Activity */}
-          <div className="lg:col-span-7 bg-[#0A0A0A] border border-[#1A1A1A] rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-[#F1F5F9] mb-4">
+          <div className="lg:col-span-7 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-6">
+            <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
               Recent Activity
             </h2>
             {loading ? (
@@ -284,14 +292,14 @@ export default function DashboardPage() {
           </div>
 
           {/* Upcoming Tasks */}
-          <div className="lg:col-span-5 bg-[#0A0A0A] border border-[#1A1A1A] rounded-xl p-6">
+          <div className="lg:col-span-5 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-[#F1F5F9]">
+              <h2 className="text-lg font-semibold text-[var(--text-primary)]">
                 Upcoming Tasks
               </h2>
               <button
                 onClick={() => router.push("/tasks")}
-                className="text-xs text-[#3B82F6] hover:text-[#2563EB]"
+                className="text-xs text-[var(--color-primary)] hover:text-[var(--color-primary-hover)]"
               >
                 View all
               </button>
@@ -303,7 +311,7 @@ export default function DashboardPage() {
                 ))}
               </div>
             ) : recentTasks.length === 0 ? (
-              <p className="text-sm text-[#475569] text-center py-4">
+              <p className="text-sm text-[var(--text-muted)] text-center py-4">
                 No upcoming tasks
               </p>
             ) : (
@@ -311,7 +319,7 @@ export default function DashboardPage() {
                 {recentTasks.map((task: any) => (
                   <div
                     key={task.id}
-                    className="flex items-center justify-between p-3 rounded-lg hover:bg-[#000000] transition-colors cursor-pointer"
+                    className="flex items-center justify-between p-3 rounded-lg hover:bg-[var(--bg-main)] transition-colors cursor-pointer"
                     onClick={() => {
                       if (task.strategyId) {
                         router.push(`/strategies/${task.strategyId}`);
@@ -324,13 +332,13 @@ export default function DashboardPage() {
                       <div className="text-sm truncate">
                         {task.strategy && (
                           <>
-                            <span className="text-[#94A3B8]">
+                            <span className="text-[var(--text-secondary)]">
                               {task.strategy.name}
                             </span>
-                            <span className="text-[#475569] mx-2">/</span>
+                            <span className="text-[var(--text-muted)] mx-2">/</span>
                           </>
                         )}
-                        <span className="text-[#F1F5F9]">{task.title}</span>
+                        <span className="text-[var(--text-primary)]">{task.title}</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
@@ -340,7 +348,7 @@ export default function DashboardPage() {
                         {task.priority}
                       </Badge>
                       {task.dueDate && (
-                        <div className="flex items-center gap-1 text-xs text-[#475569]">
+                        <div className="flex items-center gap-1 text-xs text-[var(--text-muted)]">
                           <Calendar className="h-3 w-3" />
                           {format(new Date(task.dueDate), "dd MMM")}
                         </div>

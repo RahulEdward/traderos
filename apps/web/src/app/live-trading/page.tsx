@@ -47,6 +47,7 @@ import {
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MetricCard } from "@/components/shared/metric-card";
+import { InfoTooltip } from "@/components/shared/info-tooltip";
 import { formatINR, formatPercentage } from "@tradeos/shared";
 import { format } from "date-fns";
 
@@ -70,8 +71,8 @@ interface LiveTrade {
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload) return null;
   return (
-    <div className="bg-[#0F1629] border border-[#1E2A45] rounded-lg p-3 shadow-lg">
-      <p className="text-sm text-[#F1F5F9] font-medium mb-1">{label}</p>
+    <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg p-3 shadow-lg">
+      <p className="text-sm text-[var(--text-primary)] font-medium mb-1">{label}</p>
       {payload.map((entry: any, i: number) => (
         <p key={i} className="text-xs" style={{ color: entry.color }}>
           {entry.name}: {formatINR(entry.value)}
@@ -204,7 +205,7 @@ export default function LiveTradingPage() {
   if (loading) {
     return (
       <div>
-        <h1 className="text-2xl font-semibold text-[#F1F5F9] mb-6">Live Trading</h1>
+        <h1 className="text-2xl font-semibold text-[var(--text-primary)] mb-6">Live Trading</h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-[120px]" />)}
         </div>
@@ -217,14 +218,14 @@ export default function LiveTradingPage() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-semibold text-[#F1F5F9]">Live Trading</h1>
-          <p className="text-sm text-[#94A3B8] mt-1">
+          <h1 className="text-2xl font-semibold text-[var(--text-primary)]">Live Trading</h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
             Track real money performance across strategies
           </p>
         </div>
         <div className="flex items-center gap-3">
           <Select value={strategyFilter} onValueChange={setStrategyFilter}>
-            <SelectTrigger className="w-[200px] bg-[#0A0E1A] border-[#1E2A45]">
+            <SelectTrigger className="w-[200px] bg-[var(--bg-main)] border-[var(--border-color)]">
               <SelectValue placeholder="All Strategies" />
             </SelectTrigger>
             <SelectContent>
@@ -240,21 +241,21 @@ export default function LiveTradingPage() {
           </Button>
           <Dialog open={showLogDialog} onOpenChange={setShowLogDialog}>
             <DialogTrigger asChild>
-              <Button className="bg-[#3B82F6] hover:bg-[#2563EB]">
+              <Button className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)]">
                 <Plus className="h-4 w-4 mr-2" />
                 Log Trade
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-[#0F1629] border-[#1E2A45] max-w-lg max-h-[80vh] overflow-y-auto">
+            <DialogContent className="bg-[var(--bg-card)] border-[var(--border-color)] max-w-lg max-h-[80vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle className="text-[#F1F5F9]">Log Live Trade</DialogTitle>
+                <DialogTitle className="text-[var(--text-primary)]">Log Live Trade</DialogTitle>
               </DialogHeader>
               <div className="space-y-3 mt-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs text-[#94A3B8] mb-1 block">Strategy *</label>
+                    <label className="text-xs text-[var(--text-secondary)] mb-1 block">Strategy *</label>
                     <Select value={formData.strategyId} onValueChange={(v) => setFormData({ ...formData, strategyId: v })}>
-                      <SelectTrigger className="bg-[#0A0E1A] border-[#1E2A45]">
+                      <SelectTrigger className="bg-[var(--bg-main)] border-[var(--border-color)]">
                         <SelectValue placeholder="Select" />
                       </SelectTrigger>
                       <SelectContent>
@@ -265,20 +266,20 @@ export default function LiveTradingPage() {
                     </Select>
                   </div>
                   <div>
-                    <label className="text-xs text-[#94A3B8] mb-1 block">Symbol *</label>
+                    <label className="text-xs text-[var(--text-secondary)] mb-1 block">Symbol *</label>
                     <Input
                       value={formData.symbol}
                       onChange={(e) => setFormData({ ...formData, symbol: e.target.value })}
                       placeholder="NIFTY 50"
-                      className="bg-[#0A0E1A] border-[#1E2A45]"
+                      className="bg-[var(--bg-main)] border-[var(--border-color)]"
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <label className="text-xs text-[#94A3B8] mb-1 block">Direction</label>
+                    <label className="text-xs text-[var(--text-secondary)] mb-1 block">Direction</label>
                     <Select value={formData.direction} onValueChange={(v) => setFormData({ ...formData, direction: v })}>
-                      <SelectTrigger className="bg-[#0A0E1A] border-[#1E2A45]">
+                      <SelectTrigger className="bg-[var(--bg-main)] border-[var(--border-color)]">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -288,97 +289,97 @@ export default function LiveTradingPage() {
                     </Select>
                   </div>
                   <div>
-                    <label className="text-xs text-[#94A3B8] mb-1 block">Entry Date *</label>
+                    <label className="text-xs text-[var(--text-secondary)] mb-1 block">Entry Date *</label>
                     <Input
                       type="date"
                       value={formData.entryDate}
                       onChange={(e) => setFormData({ ...formData, entryDate: e.target.value })}
-                      className="bg-[#0A0E1A] border-[#1E2A45]"
+                      className="bg-[var(--bg-main)] border-[var(--border-color)]"
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-[#94A3B8] mb-1 block">Exit Date</label>
+                    <label className="text-xs text-[var(--text-secondary)] mb-1 block">Exit Date</label>
                     <Input
                       type="date"
                       value={formData.exitDate}
                       onChange={(e) => setFormData({ ...formData, exitDate: e.target.value })}
-                      className="bg-[#0A0E1A] border-[#1E2A45]"
+                      className="bg-[var(--bg-main)] border-[var(--border-color)]"
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <label className="text-xs text-[#94A3B8] mb-1 block">Entry Price *</label>
+                    <label className="text-xs text-[var(--text-secondary)] mb-1 block">Entry Price *</label>
                     <Input
                       type="number"
                       value={formData.entryPrice}
                       onChange={(e) => setFormData({ ...formData, entryPrice: e.target.value })}
                       placeholder="22450.50"
-                      className="bg-[#0A0E1A] border-[#1E2A45]"
+                      className="bg-[var(--bg-main)] border-[var(--border-color)]"
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-[#94A3B8] mb-1 block">Exit Price</label>
+                    <label className="text-xs text-[var(--text-secondary)] mb-1 block">Exit Price</label>
                     <Input
                       type="number"
                       value={formData.exitPrice}
                       onChange={(e) => setFormData({ ...formData, exitPrice: e.target.value })}
                       placeholder="22520.30"
-                      className="bg-[#0A0E1A] border-[#1E2A45]"
+                      className="bg-[var(--bg-main)] border-[var(--border-color)]"
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-[#94A3B8] mb-1 block">Quantity</label>
+                    <label className="text-xs text-[var(--text-secondary)] mb-1 block">Quantity</label>
                     <Input
                       type="number"
                       value={formData.quantity}
                       onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
                       placeholder="50"
-                      className="bg-[#0A0E1A] border-[#1E2A45]"
+                      className="bg-[var(--bg-main)] border-[var(--border-color)]"
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <label className="text-xs text-[#94A3B8] mb-1 block">Gross P&L</label>
+                    <label className="text-xs text-[var(--text-secondary)] mb-1 block">Gross P&L</label>
                     <Input
                       type="number"
                       value={formData.grossPnl}
                       onChange={(e) => setFormData({ ...formData, grossPnl: e.target.value })}
-                      className="bg-[#0A0E1A] border-[#1E2A45]"
+                      className="bg-[var(--bg-main)] border-[var(--border-color)]"
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-[#94A3B8] mb-1 block">Net P&L</label>
+                    <label className="text-xs text-[var(--text-secondary)] mb-1 block">Net P&L</label>
                     <Input
                       type="number"
                       value={formData.netPnl}
                       onChange={(e) => setFormData({ ...formData, netPnl: e.target.value })}
-                      className="bg-[#0A0E1A] border-[#1E2A45]"
+                      className="bg-[var(--bg-main)] border-[var(--border-color)]"
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-[#94A3B8] mb-1 block">Broker</label>
+                    <label className="text-xs text-[var(--text-secondary)] mb-1 block">Broker</label>
                     <Input
                       value={formData.broker}
                       onChange={(e) => setFormData({ ...formData, broker: e.target.value })}
                       placeholder="Zerodha"
-                      className="bg-[#0A0E1A] border-[#1E2A45]"
+                      className="bg-[var(--bg-main)] border-[var(--border-color)]"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs text-[#94A3B8] mb-1 block">Notes</label>
+                  <label className="text-xs text-[var(--text-secondary)] mb-1 block">Notes</label>
                   <Textarea
                     value={formData.notes}
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                     placeholder="Trade notes..."
-                    className="bg-[#0A0E1A] border-[#1E2A45]"
+                    className="bg-[var(--bg-main)] border-[var(--border-color)]"
                     rows={2}
                   />
                 </div>
                 <Button
-                  className="w-full bg-[#3B82F6] hover:bg-[#2563EB]"
+                  className="w-full bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)]"
                   onClick={logTrade}
                   disabled={submitting || !formData.strategyId || !formData.symbol || !formData.entryDate || !formData.entryPrice}
                 >
@@ -394,19 +395,19 @@ export default function LiveTradingPage() {
       {summary && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <MetricCard
-            title="Total P&L"
+            title={<span className="flex items-center gap-1">Total P&L <InfoTooltip text="Total realized profit and loss from all live trades" /></span>}
             value={formatINR(summary.totalPnl)}
             icon={DollarSign}
             color={summary.totalPnl >= 0 ? "#10B981" : "#EF4444"}
           />
           <MetricCard
-            title="Total Trades"
+            title={<span className="flex items-center gap-1">Total Trades <InfoTooltip text="Number of trades executed in live trading mode" /></span>}
             value={summary.totalTrades}
             icon={Activity}
             color="#3B82F6"
           />
           <MetricCard
-            title="Win Rate"
+            title={<span className="flex items-center gap-1">Win Rate <InfoTooltip text="Percentage of live trades that were profitable" /></span>}
             value={summary.totalTrades > 0
               ? formatPercentage((summary.winningTrades / summary.totalTrades) * 100)
               : "—"}
@@ -414,7 +415,7 @@ export default function LiveTradingPage() {
             color="#10B981"
           />
           <MetricCard
-            title="Avg Slippage"
+            title={<span className="flex items-center gap-1">Avg Slippage <InfoTooltip text="Average difference between expected and actual fill price. Lower is better" /></span>}
             value={formatINR(summary.avgSlippage)}
             icon={ArrowUpDown}
             color="#F59E0B"
@@ -425,38 +426,38 @@ export default function LiveTradingPage() {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Live Equity Curve */}
-        <div className="bg-[#0F1629] border border-[#1E2A45] rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-[#F1F5F9] mb-4 flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-[#3B82F6]" />
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-6">
+          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-[var(--color-primary)]" />
             Live Equity Curve
           </h2>
           {equityCurve.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={equityCurve}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1E2A45" />
-                <XAxis dataKey="date" tick={{ fill: "#94A3B8", fontSize: 11 }} />
-                <YAxis tick={{ fill: "#94A3B8", fontSize: 11 }} tickFormatter={(v) => `₹${(v / 1000).toFixed(1)}K`} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                <XAxis dataKey="date" tick={{ fill: "var(--text-secondary)", fontSize: 11 }} />
+                <YAxis tick={{ fill: "var(--text-secondary)", fontSize: 11 }} tickFormatter={(v) => `₹${(v / 1000).toFixed(1)}K`} />
                 <Tooltip content={<CustomTooltip />} />
                 <Line type="monotone" dataKey="cumPnl" name="Cumulative P&L" stroke="#3B82F6" strokeWidth={2} dot={{ fill: "#3B82F6", r: 3 }} />
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-sm text-[#475569] text-center py-10">No live trades yet</p>
+            <p className="text-sm text-[var(--text-muted)] text-center py-10">No live trades yet</p>
           )}
         </div>
 
         {/* Monthly P&L */}
-        <div className="bg-[#0F1629] border border-[#1E2A45] rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-[#F1F5F9] mb-4 flex items-center gap-2">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-6">
+          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
             <BarChart3 className="h-5 w-5 text-[#F59E0B]" />
             Monthly P&L
           </h2>
           {monthlyData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1E2A45" />
-                <XAxis dataKey="month" tick={{ fill: "#94A3B8", fontSize: 11 }} />
-                <YAxis tick={{ fill: "#94A3B8", fontSize: 11 }} tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}K`} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                <XAxis dataKey="month" tick={{ fill: "var(--text-secondary)", fontSize: 11 }} />
+                <YAxis tick={{ fill: "var(--text-secondary)", fontSize: 11 }} tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}K`} />
                 <Tooltip content={<CustomTooltip />} />
                 <Bar dataKey="pnl" name="P&L" radius={[4, 4, 0, 0]}>
                   {monthlyData.map((entry, i) => (
@@ -466,26 +467,26 @@ export default function LiveTradingPage() {
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <p className="text-sm text-[#475569] text-center py-10">No monthly data</p>
+            <p className="text-sm text-[var(--text-muted)] text-center py-10">No monthly data</p>
           )}
         </div>
       </div>
 
       {/* Slippage Analysis */}
       {summary && (
-        <div className="bg-[#0F1629] border border-[#1E2A45] rounded-xl p-6 mb-6">
-          <h2 className="text-lg font-semibold text-[#F1F5F9] mb-4">Slippage Analysis</h2>
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-6 mb-6">
+          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Slippage Analysis</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-[#0A0E1A] border border-[#1E2A45] rounded-lg p-4">
-              <p className="text-xs text-[#94A3B8] mb-1">Average Slippage</p>
+            <div className="bg-[var(--bg-main)] border border-[var(--border-color)] rounded-lg p-4">
+              <p className="text-xs text-[var(--text-secondary)] mb-1 flex items-center gap-1">Average Slippage <InfoTooltip text="Mean slippage per trade in basis points" /></p>
               <p className="text-xl font-mono text-[#F59E0B]">{formatINR(summary.avgSlippage)}</p>
             </div>
-            <div className="bg-[#0A0E1A] border border-[#1E2A45] rounded-lg p-4">
-              <p className="text-xs text-[#94A3B8] mb-1">Worst Slippage</p>
+            <div className="bg-[var(--bg-main)] border border-[var(--border-color)] rounded-lg p-4">
+              <p className="text-xs text-[var(--text-secondary)] mb-1 flex items-center gap-1">Worst Slippage <InfoTooltip text="Largest slippage experienced on a single trade" /></p>
               <p className="text-xl font-mono text-[#EF4444]">{formatINR(summary.worstSlippage)}</p>
             </div>
-            <div className="bg-[#0A0E1A] border border-[#1E2A45] rounded-lg p-4">
-              <p className="text-xs text-[#94A3B8] mb-1">Total Slippage Impact</p>
+            <div className="bg-[var(--bg-main)] border border-[var(--border-color)] rounded-lg p-4">
+              <p className="text-xs text-[var(--text-secondary)] mb-1 flex items-center gap-1">Total Slippage Impact <InfoTooltip text="Cumulative cost of slippage across all trades" /></p>
               <p className="text-xl font-mono text-[#EF4444]">
                 {formatINR(summary.avgSlippage * summary.totalTrades)}
               </p>
@@ -495,18 +496,18 @@ export default function LiveTradingPage() {
       )}
 
       {/* Trade Table */}
-      <div className="bg-[#0F1629] border border-[#1E2A45] rounded-xl p-6">
-        <h2 className="text-lg font-semibold text-[#F1F5F9] mb-4">Live Trades</h2>
+      <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-6">
+        <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Live Trades</h2>
         {trades.length === 0 ? (
           <div className="text-center py-12">
-            <Activity className="h-12 w-12 text-[#475569] mx-auto mb-3" />
-            <p className="text-sm text-[#475569]">No live trades logged yet. Click &ldquo;Log Trade&rdquo; to record your first trade.</p>
+            <Activity className="h-12 w-12 text-[var(--text-muted)] mx-auto mb-3" />
+            <p className="text-sm text-[var(--text-muted)]">No live trades logged yet. Click &ldquo;Log Trade&rdquo; to record your first trade.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[#1E2A45] text-[#94A3B8] text-xs">
+                <tr className="border-b border-[var(--border-color)] text-[var(--text-secondary)] text-xs">
                   <th className="text-left py-3 px-2">Date</th>
                   <th className="text-left py-3 px-2">Symbol</th>
                   <th className="text-left py-3 px-2">Direction</th>
@@ -521,11 +522,11 @@ export default function LiveTradingPage() {
               </thead>
               <tbody>
                 {trades.map((trade) => (
-                  <tr key={trade.id} className="border-b border-[#1E2A45]/50 hover:bg-[#080C18] transition-colors">
-                    <td className="py-3 px-2 text-[#94A3B8] font-mono text-xs">
+                  <tr key={trade.id} className="border-b border-[var(--border-color)]/50 hover:bg-[var(--bg-sidebar)] transition-colors">
+                    <td className="py-3 px-2 text-[var(--text-secondary)] font-mono text-xs">
                       {format(new Date(trade.entryDate), "dd MMM yyyy")}
                     </td>
-                    <td className="py-3 px-2 text-[#F1F5F9] font-medium">{trade.symbol}</td>
+                    <td className="py-3 px-2 text-[var(--text-primary)] font-medium">{trade.symbol}</td>
                     <td className="py-3 px-2">
                       <Badge className={trade.direction === "LONG"
                         ? "bg-[#10B981]/20 text-[#10B981] border-[#10B981]"
@@ -534,20 +535,20 @@ export default function LiveTradingPage() {
                         {trade.direction}
                       </Badge>
                     </td>
-                    <td className="py-3 px-2 text-right font-mono text-[#94A3B8]">
+                    <td className="py-3 px-2 text-right font-mono text-[var(--text-secondary)]">
                       {formatINR(trade.entryPrice)}
                     </td>
-                    <td className="py-3 px-2 text-right font-mono text-[#94A3B8]">
+                    <td className="py-3 px-2 text-right font-mono text-[var(--text-secondary)]">
                       {trade.exitPrice ? formatINR(trade.exitPrice) : "—"}
                     </td>
-                    <td className="py-3 px-2 text-right font-mono text-[#94A3B8]">{trade.quantity}</td>
+                    <td className="py-3 px-2 text-right font-mono text-[var(--text-secondary)]">{trade.quantity}</td>
                     <td className={`py-3 px-2 text-right font-mono ${(trade.grossPnl || 0) >= 0 ? "text-[#10B981]" : "text-[#EF4444]"}`}>
                       {trade.grossPnl != null ? formatINR(trade.grossPnl) : "—"}
                     </td>
                     <td className={`py-3 px-2 text-right font-mono ${(trade.netPnl || 0) >= 0 ? "text-[#10B981]" : "text-[#EF4444]"}`}>
                       {trade.netPnl != null ? formatINR(trade.netPnl) : "—"}
                     </td>
-                    <td className="py-3 px-2 text-[#94A3B8] text-xs">{trade.broker || "—"}</td>
+                    <td className="py-3 px-2 text-[var(--text-secondary)] text-xs">{trade.broker || "—"}</td>
                     <td className="py-3 px-2">
                       <Badge variant="secondary" className="text-xs">{trade.strategy?.name}</Badge>
                     </td>

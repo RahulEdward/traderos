@@ -140,8 +140,8 @@ export default function HelpPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-[#F1F5F9]">Help Center</h1>
-        <p className="text-sm text-[#94A3B8] mt-1">
+        <h1 className="text-2xl font-semibold text-[var(--text-primary)]">Help Center</h1>
+        <p className="text-sm text-[var(--text-secondary)] mt-1">
           Everything you need to know about TradeOS India
         </p>
       </div>
@@ -149,12 +149,12 @@ export default function HelpPage() {
       {/* Search */}
       <div className="mb-8 max-w-xl">
         <div className="relative">
-          <HelpCircle className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#475569]" />
+          <HelpCircle className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)]" />
           <Input
             placeholder="Search help articles..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-[#0F1629] border-[#1E2A45] h-11"
+            className="pl-10 bg-[var(--bg-card)] border-[var(--border-color)] h-11"
           />
         </div>
       </div>
@@ -162,22 +162,22 @@ export default function HelpPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* FAQ Section - 2 columns */}
         <div className="lg:col-span-2 space-y-6">
-          <h2 className="text-lg font-semibold text-[#F1F5F9] flex items-center gap-2">
+          <h2 className="text-lg font-semibold text-[var(--text-primary)] flex items-center gap-2">
             <BookOpen className="h-5 w-5 text-[#3B82F6]" />
             Frequently Asked Questions
           </h2>
 
           {filteredFAQ.length === 0 && (
-            <div className="bg-[#0F1629] border border-[#1E2A45] rounded-xl p-8 text-center">
-              <HelpCircle className="h-10 w-10 text-[#475569] mx-auto mb-3" />
-              <p className="text-[#94A3B8]">No results found for &quot;{searchQuery}&quot;</p>
-              <p className="text-sm text-[#475569] mt-1">Try a different search term</p>
+            <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-8 text-center">
+              <HelpCircle className="h-10 w-10 text-[var(--text-muted)] mx-auto mb-3" />
+              <p className="text-[var(--text-secondary)]">No results found for &quot;{searchQuery}&quot;</p>
+              <p className="text-sm text-[var(--text-muted)] mt-1">Try a different search term</p>
             </div>
           )}
 
           {filteredFAQ.map((category) => (
             <div key={category.category}>
-              <h3 className="text-sm font-medium text-[#94A3B8] uppercase tracking-wider mb-3">
+              <h3 className="text-sm font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-3">
                 {category.category}
               </h3>
               <div className="space-y-2">
@@ -187,24 +187,24 @@ export default function HelpPage() {
                   return (
                     <div
                       key={key}
-                      className="bg-[#0F1629] border border-[#1E2A45] rounded-lg overflow-hidden"
+                      className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg overflow-hidden"
                     >
                       <button
                         onClick={() => toggleItem(key)}
-                        className="w-full flex items-center justify-between p-4 text-left hover:bg-[#0F1629]/80 transition-colors"
+                        className="w-full flex items-center justify-between p-4 text-left hover:bg-[var(--bg-card)]/80 transition-colors"
                       >
-                        <span className="text-sm font-medium text-[#F1F5F9] pr-4">
+                        <span className="text-sm font-medium text-[var(--text-primary)] pr-4">
                           {item.q}
                         </span>
                         {isExpanded ? (
-                          <ChevronUp className="h-4 w-4 text-[#475569] shrink-0" />
+                          <ChevronUp className="h-4 w-4 text-[var(--text-muted)] shrink-0" />
                         ) : (
-                          <ChevronDown className="h-4 w-4 text-[#475569] shrink-0" />
+                          <ChevronDown className="h-4 w-4 text-[var(--text-muted)] shrink-0" />
                         )}
                       </button>
                       {isExpanded && (
-                        <div className="px-4 pb-4 border-t border-[#1E2A45]">
-                          <p className="text-sm text-[#94A3B8] mt-3 leading-relaxed">
+                        <div className="px-4 pb-4 border-t border-[var(--border-color)]">
+                          <p className="text-sm text-[var(--text-secondary)] mt-3 leading-relaxed">
                             {item.a}
                           </p>
                         </div>
@@ -220,8 +220,8 @@ export default function HelpPage() {
         {/* Right sidebar */}
         <div className="space-y-6">
           {/* Quick Links */}
-          <div className="bg-[#0F1629] border border-[#1E2A45] rounded-xl p-5">
-            <h3 className="text-sm font-semibold text-[#F1F5F9] mb-4 flex items-center gap-2">
+          <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-5">
+            <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
               <Zap className="h-4 w-4 text-[#F59E0B]" />
               Quick Links
             </h3>
@@ -232,14 +232,14 @@ export default function HelpPage() {
                   <a
                     key={link.href}
                     href={link.href}
-                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-[#0A0E1A] transition-colors group"
+                    className="flex items-center gap-3 p-2 rounded-lg hover:bg-[var(--bg-main)] transition-colors group"
                   >
-                    <Icon className="h-4 w-4 text-[#475569] group-hover:text-[#3B82F6]" />
+                    <Icon className="h-4 w-4 text-[var(--text-muted)] group-hover:text-[#3B82F6]" />
                     <div>
-                      <p className="text-sm text-[#F1F5F9] group-hover:text-[#3B82F6]">
+                      <p className="text-sm text-[var(--text-primary)] group-hover:text-[#3B82F6]">
                         {link.label}
                       </p>
-                      <p className="text-xs text-[#475569]">{link.desc}</p>
+                      <p className="text-xs text-[var(--text-muted)]">{link.desc}</p>
                     </div>
                   </a>
                 );
@@ -248,8 +248,8 @@ export default function HelpPage() {
           </div>
 
           {/* Keyboard Shortcuts */}
-          <div className="bg-[#0F1629] border border-[#1E2A45] rounded-xl p-5">
-            <h3 className="text-sm font-semibold text-[#F1F5F9] mb-4 flex items-center gap-2">
+          <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-5">
+            <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
               <Shield className="h-4 w-4 text-[#06B6D4]" />
               Keyboard Shortcuts
             </h3>
@@ -259,12 +259,12 @@ export default function HelpPage() {
                   key={shortcut.action}
                   className="flex items-center justify-between"
                 >
-                  <span className="text-xs text-[#94A3B8]">{shortcut.action}</span>
+                  <span className="text-xs text-[var(--text-secondary)]">{shortcut.action}</span>
                   <div className="flex items-center gap-1">
                     {shortcut.keys.map((key) => (
                       <kbd
                         key={key}
-                        className="px-1.5 py-0.5 bg-[#0A0E1A] border border-[#1E2A45] rounded text-[10px] font-mono text-[#94A3B8]"
+                        className="px-1.5 py-0.5 bg-[var(--bg-main)] border border-[var(--border-color)] rounded text-[10px] font-mono text-[var(--text-secondary)]"
                       >
                         {key}
                       </kbd>
@@ -276,12 +276,12 @@ export default function HelpPage() {
           </div>
 
           {/* Contact Support */}
-          <div className="bg-[#0F1629] border border-[#1E2A45] rounded-xl p-5">
-            <h3 className="text-sm font-semibold text-[#F1F5F9] mb-3 flex items-center gap-2">
+          <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-5">
+            <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3 flex items-center gap-2">
               <MessageCircle className="h-4 w-4 text-[#10B981]" />
               Need More Help?
             </h3>
-            <p className="text-xs text-[#94A3B8] mb-4">
+            <p className="text-xs text-[var(--text-secondary)] mb-4">
               Can&apos;t find what you&apos;re looking for? Reach out to our support team.
             </p>
             <div className="space-y-2">
@@ -306,8 +306,8 @@ export default function HelpPage() {
                 Live Chat (Pro & Agency)
               </Button>
             </div>
-            <div className="mt-4 pt-4 border-t border-[#1E2A45]">
-              <p className="text-xs text-[#475569]">
+            <div className="mt-4 pt-4 border-t border-[var(--border-color)]">
+              <p className="text-xs text-[var(--text-muted)]">
                 Response time: within 24 hours for Free plan, 4 hours for Pro, 1 hour for Agency.
               </p>
             </div>

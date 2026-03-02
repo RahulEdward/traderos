@@ -14,10 +14,15 @@ import {
   TrendingDown,
   Target,
   Shield,
+  FileDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { InfoTooltip } from "@/components/shared/info-tooltip";
+import { interpretBacktestResults } from "@/lib/backtest/interpretations";
+
+const REPORT_STORAGE_KEY_PREFIX = "tradeos_backtest_report_";
 
 interface BacktestRunnerProps {
   strategyId: string;
@@ -70,6 +75,7 @@ export function BacktestRunner({ strategyId, strategyName, hasTrades }: Backtest
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [generatingReport, setGeneratingReport] = useState(false);
 
   const runBacktest = async () => {
     setRunning(true);
@@ -109,12 +115,43 @@ export function BacktestRunner({ strategyId, strategyName, hasTrades }: Backtest
 
   const stats = result?.statistics;
 
+  const downloadReport = () => {
+    if (!stats) return;
+    setGeneratingReport(true);
+    try {
+      const interpretation = interpretBacktestResults(
+        stats,
+        selectedMethod,
+        strategyName
+      );
+      const reportData = {
+        strategyName,
+        strategyId,
+        method: selectedMethod,
+        numPaths: result.numPaths,
+        backtestVersion: undefined,
+        stats,
+        interpretation,
+        generatedAt: new Date().toISOString(),
+      };
+      localStorage.setItem(
+        `${REPORT_STORAGE_KEY_PREFIX}${strategyId}`,
+        JSON.stringify(reportData)
+      );
+      window.open(`/backtest-report/${strategyId}`, "_blank");
+    } catch (e) {
+      console.error("Failed to generate report:", e);
+    } finally {
+      setGeneratingReport(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Method Selector */}
       <div>
-        <h3 className="text-sm font-medium text-[#94A3B8] mb-3">
-          Select Backtesting Method (AFML Ch.12)
+        <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-3">
+          Select Backtesting Method
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {METHODS.map((method) => {
@@ -126,8 +163,8 @@ export function BacktestRunner({ strategyId, strategyName, hasTrades }: Backtest
                 onClick={() => setSelectedMethod(method.id)}
                 className={`relative text-left p-4 rounded-xl border transition-all ${
                   isSelected
-                    ? "border-[#3B82F6] bg-[#3B82F6]/5"
-                    : "border-[#1E2A45] bg-[#0F1629] hover:border-[#3B82F6]/30"
+                    ? "border-[var(--color-primary)] bg-[var(--color-primary)]/5"
+                    : "border-[var(--border-color)] bg-[var(--bg-card)] hover:border-[var(--color-primary)]/30"
                 }`}
               >
                 {method.recommended && (
@@ -142,9 +179,9 @@ export function BacktestRunner({ strategyId, strategyName, hasTrades }: Backtest
                   >
                     <Icon className="h-4 w-4" style={{ color: method.color }} />
                   </div>
-                  <span className="font-semibold text-[#F1F5F9]">{method.label}</span>
+                  <span className="font-semibold text-[var(--text-primary)]">{method.label}</span>
                 </div>
-                <p className="text-xs text-[#94A3B8] mb-2">{method.description}</p>
+                <p className="text-xs text-[var(--text-secondary)] mb-2">{method.description}</p>
                 <div className="flex gap-4 text-[10px]">
                   <span className="text-[#10B981]">+ {method.pros}</span>
                   <span className="text-[#EF4444]">- {method.cons}</span>
@@ -191,16 +228,31 @@ export function BacktestRunner({ strategyId, strategyName, hasTrades }: Backtest
       {stats && (
         <div className="space-y-4">
           {/* Header */}
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-5 w-5 text-[#10B981]" />
-            <h3 className="text-lg font-semibold text-[#F1F5F9]">
-              AFML Statistics
-            </h3>
-            {result.sharpeDistribution && (
-              <Badge className="bg-[#8B5CF6]/10 text-[#8B5CF6] border-[#8B5CF6]/30">
-                {result.numPaths} paths analyzed
-              </Badge>
-            )}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-[#10B981]" />
+              <h3 className="text-lg font-semibold text-[var(--text-primary)]">
+                AFML Statistics
+              </h3>
+              {result.sharpeDistribution && (
+                <Badge className="bg-[#8B5CF6]/10 text-[#8B5CF6] border-[#8B5CF6]/30">
+                  {result.numPaths} paths analyzed
+                </Badge>
+              )}
+            </div>
+            <Button
+              onClick={downloadReport}
+              disabled={generatingReport}
+              size="sm"
+              className="bg-gradient-to-r from-[#06B6D4] to-[#3B82F6] hover:opacity-90 text-white text-xs gap-1.5"
+            >
+              {generatingReport ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <FileDown className="h-3.5 w-3.5" />
+              )}
+              Download PDF Report
+            </Button>
           </div>
 
           {/* Key Metrics Grid */}
@@ -210,6 +262,7 @@ export function BacktestRunner({ strategyId, strategyName, hasTrades }: Backtest
               value={stats.annualizedSharpe?.toFixed(2)}
               icon={TrendingUp}
               color={stats.annualizedSharpe > 1 ? "#10B981" : stats.annualizedSharpe > 0 ? "#F59E0B" : "#EF4444"}
+              tooltip="Annualized risk-adjusted return. Above 1.0 is acceptable, above 2.0 is very good"
             />
             <StatCard
               label="PSR"
@@ -237,48 +290,48 @@ export function BacktestRunner({ strategyId, strategyName, hasTrades }: Backtest
           {/* Detailed Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Performance */}
-            <Card className="bg-[#0F1629] border-[#1E2A45] p-4">
+            <Card className="bg-[var(--bg-card)] border-[var(--border-color)] p-4">
               <h4 className="text-xs font-medium text-[#3B82F6] uppercase tracking-wider mb-3">
                 Performance
               </h4>
               <div className="space-y-2 text-sm">
-                <StatRow label="Net P&L" value={`₹${stats.pnl?.toLocaleString("en-IN")}`} />
-                <StatRow label="Hit Ratio" value={`${(stats.hitRatio * 100).toFixed(1)}%`} />
-                <StatRow label="Profit Factor" value={stats.profitFactor?.toFixed(2)} />
-                <StatRow label="Expectancy" value={`₹${stats.expectancy?.toLocaleString("en-IN")}`} />
-                <StatRow label="Total Bets" value={stats.totalBets} />
-                <StatRow label="Bets/Year" value={stats.frequencyOfBets?.toFixed(0)} />
+                <StatRow label="Net P&L" value={`₹${stats.pnl?.toLocaleString("en-IN")}`} tooltip="Total net profit/loss across all backtest paths" />
+                <StatRow label="Hit Ratio" value={`${(stats.hitRatio * 100).toFixed(1)}%`} tooltip="Percentage of trades that were profitable" />
+                <StatRow label="Profit Factor" value={stats.profitFactor?.toFixed(2)} tooltip="Gross profits divided by gross losses. Above 1.5 is good" />
+                <StatRow label="Expectancy" value={`₹${stats.expectancy?.toLocaleString("en-IN")}`} tooltip="Average expected profit per trade" />
+                <StatRow label="Total Bets" value={stats.totalBets} tooltip="Total number of trades analyzed" />
+                <StatRow label="Bets/Year" value={stats.frequencyOfBets?.toFixed(0)} tooltip="Annualized trade frequency" />
               </div>
             </Card>
 
             {/* Risk & Drawdowns */}
-            <Card className="bg-[#0F1629] border-[#1E2A45] p-4">
+            <Card className="bg-[var(--bg-card)] border-[var(--border-color)] p-4">
               <h4 className="text-xs font-medium text-[#EF4444] uppercase tracking-wider mb-3">
                 Risk & Drawdowns
               </h4>
               <div className="space-y-2 text-sm">
-                <StatRow label="Max Drawdown" value={`₹${stats.maxDrawdown?.toLocaleString("en-IN")}`} />
-                <StatRow label="Max DD %" value={`${stats.maxDrawdownPct?.toFixed(1)}%`} />
-                <StatRow label="95th pctl DD" value={`₹${stats.drawdown95?.toLocaleString("en-IN")}`} />
-                <StatRow label="95th pctl TuW" value={`${stats.timeUnderWater95} days`} />
-                <StatRow label="Recovery Factor" value={stats.recoveryFactor?.toFixed(2)} />
-                <StatRow label="Calmar Ratio" value={stats.calmarRatio?.toFixed(2)} />
+                <StatRow label="Max Drawdown" value={`₹${stats.maxDrawdown?.toLocaleString("en-IN")}`} tooltip="Largest peak-to-trough decline in equity" />
+                <StatRow label="Max DD %" value={`${stats.maxDrawdownPct?.toFixed(1)}%`} tooltip="Max drawdown as percentage of peak equity" />
+                <StatRow label="95th pctl DD" value={`₹${stats.drawdown95?.toLocaleString("en-IN")}`} tooltip="95th percentile drawdown — expect this loss 5% of the time" />
+                <StatRow label="95th pctl TuW" value={`${stats.timeUnderWater95} days`} tooltip="95th percentile Time under Water — how long to recover from drawdowns" />
+                <StatRow label="Recovery Factor" value={stats.recoveryFactor?.toFixed(2)} tooltip="Net profit divided by max drawdown. Higher is better" />
+                <StatRow label="Calmar Ratio" value={stats.calmarRatio?.toFixed(2)} tooltip="Annualized return divided by max drawdown. Above 1.0 is good" />
               </div>
             </Card>
 
             {/* Concentration (HHI) */}
-            <Card className="bg-[#0F1629] border-[#1E2A45] p-4">
+            <Card className="bg-[var(--bg-card)] border-[var(--border-color)] p-4">
               <h4 className="text-xs font-medium text-[#F59E0B] uppercase tracking-wider mb-3">
                 Concentration (HHI)
               </h4>
               <div className="space-y-2 text-sm">
-                <HHIRow label="Positive Returns" value={stats.hhiPositive} />
-                <HHIRow label="Negative Returns" value={stats.hhiNegative} />
-                <HHIRow label="Bet Timing" value={stats.hhiTime} />
-                <div className="border-t border-[#1E2A45] pt-2 mt-2">
-                  <StatRow label="Sortino Ratio" value={stats.sortinoRatio?.toFixed(2)} />
-                  <StatRow label="Ratio of Longs" value={`${(stats.ratioOfLongs * 100).toFixed(0)}%`} />
-                  <StatRow label="Avg Holding" value={`${stats.avgHoldingPeriod?.toFixed(1)} days`} />
+                <HHIRow label="Positive Returns" value={stats.hhiPositive} tooltip="Herfindahl index of winning trades. Low means profits are spread evenly" />
+                <HHIRow label="Negative Returns" value={stats.hhiNegative} tooltip="Herfindahl index of losing trades. Low means losses are spread evenly" />
+                <HHIRow label="Bet Timing" value={stats.hhiTime} tooltip="Concentration of trades over time. Low means consistent trading frequency" />
+                <div className="border-t border-[var(--border-color)] pt-2 mt-2">
+                  <StatRow label="Sortino Ratio" value={stats.sortinoRatio?.toFixed(2)} tooltip="Like Sharpe but only penalizes downside volatility. Higher is better" />
+                  <StatRow label="Ratio of Longs" value={`${(stats.ratioOfLongs * 100).toFixed(0)}%`} tooltip="Percentage of total trades that were long (buy) positions" />
+                  <StatRow label="Avg Holding" value={`${stats.avgHoldingPeriod?.toFixed(1)} days`} tooltip="Average number of days each trade was held open" />
                 </div>
               </div>
             </Card>
@@ -286,7 +339,7 @@ export function BacktestRunner({ strategyId, strategyName, hasTrades }: Backtest
 
           {/* CPCV Sharpe Distribution */}
           {result.sharpeDistribution && result.sharpeDistribution.length > 1 && (
-            <Card className="bg-[#0F1629] border-[#1E2A45] p-4">
+            <Card className="bg-[var(--bg-card)] border-[var(--border-color)] p-4">
               <h4 className="text-xs font-medium text-[#8B5CF6] uppercase tracking-wider mb-3">
                 Sharpe Ratio Distribution ({result.sharpeDistribution.length} paths)
               </h4>
@@ -304,12 +357,12 @@ export function BacktestRunner({ strategyId, strategyName, hasTrades }: Backtest
                   />
                 ))}
               </div>
-              <div className="flex justify-between text-[10px] text-[#475569] mt-1">
+              <div className="flex justify-between text-[10px] text-[var(--text-muted)] mt-1">
                 <span>{Math.min(...result.sharpeDistribution).toFixed(1)}</span>
                 <span>Sharpe Ratio</span>
                 <span>{Math.max(...result.sharpeDistribution).toFixed(1)}</span>
               </div>
-              <p className="text-xs text-[#94A3B8] mt-2">
+              <p className="text-xs text-[var(--text-secondary)] mt-2">
                 Mean SR: {(result.sharpeDistribution.reduce((a: number, b: number) => a + b, 0) / result.sharpeDistribution.length).toFixed(2)}
                 {" | "}
                 Std: {Math.sqrt(result.sharpeDistribution.reduce((s: number, v: number) => {
@@ -323,11 +376,11 @@ export function BacktestRunner({ strategyId, strategyName, hasTrades }: Backtest
           )}
 
           {/* Interpretation */}
-          <Card className="bg-[#0F1629] border-[#1E2A45] p-4">
+          <Card className="bg-[var(--bg-card)] border-[var(--border-color)] p-4">
             <h4 className="text-xs font-medium text-[#06B6D4] uppercase tracking-wider mb-3">
               Robustness Interpretation
             </h4>
-            <div className="space-y-2 text-sm text-[#94A3B8]">
+            <div className="space-y-2 text-sm text-[var(--text-secondary)]">
               {stats.psr > 0.95 ? (
                 <InterpretRow icon={CheckCircle2} color="#10B981" text="PSR > 95%: Sharpe ratio is statistically significant" />
               ) : (
@@ -364,10 +417,11 @@ function StatCard({
   label: string; value: string | number; icon: any; color: string; tooltip?: string;
 }) {
   return (
-    <div className="bg-[#0F1629] border border-[#1E2A45] rounded-xl p-3" title={tooltip}>
+    <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-3">
       <div className="flex items-center gap-2 mb-1">
         <Icon className="h-3.5 w-3.5" style={{ color }} />
-        <span className="text-[10px] text-[#64748B] uppercase tracking-wider">{label}</span>
+        <span className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">{label}</span>
+        {tooltip && <InfoTooltip text={tooltip} />}
       </div>
       <span className="text-lg font-bold font-mono" style={{ color }}>
         {value}
@@ -376,25 +430,25 @@ function StatCard({
   );
 }
 
-function StatRow({ label, value }: { label: string; value: string | number }) {
+function StatRow({ label, value, tooltip }: { label: string; value: string | number; tooltip?: string }) {
   return (
     <div className="flex justify-between">
-      <span className="text-[#64748B]">{label}</span>
-      <span className="text-[#F1F5F9] font-mono text-xs">{value}</span>
+      <span className="text-[var(--text-muted)] flex items-center gap-1">{label}{tooltip && <InfoTooltip text={tooltip} />}</span>
+      <span className="text-[var(--text-primary)] font-mono text-xs">{value}</span>
     </div>
   );
 }
 
-function HHIRow({ label, value }: { label: string; value: number }) {
+function HHIRow({ label, value, tooltip }: { label: string; value: number; tooltip?: string }) {
   const pct = Math.min(value * 100, 100);
   const color = value < 0.05 ? "#10B981" : value < 0.15 ? "#F59E0B" : "#EF4444";
   return (
     <div>
       <div className="flex justify-between text-xs mb-1">
-        <span className="text-[#64748B]">{label}</span>
+        <span className="text-[var(--text-muted)] flex items-center gap-1">{label}{tooltip && <InfoTooltip text={tooltip} />}</span>
         <span className="font-mono" style={{ color }}>{(value * 100).toFixed(1)}%</span>
       </div>
-      <div className="h-1.5 bg-[#1E2A45] rounded-full overflow-hidden">
+      <div className="h-1.5 bg-[var(--border-color)] rounded-full overflow-hidden">
         <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: color }} />
       </div>
     </div>

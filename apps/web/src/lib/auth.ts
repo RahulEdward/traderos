@@ -79,9 +79,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             token.onboardingCompleted = dbUser.onboardingCompleted;
             token.name = dbUser.name;
             token.picture = dbUser.image;
+          } else {
+            // User no longer exists in DB (e.g. after a reset) — invalidate session
+            return null;
           }
         } catch {
-          // DB not available
+          // DB unavailable — keep existing token to avoid spurious sign-outs
         }
       }
       return token;

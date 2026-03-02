@@ -106,39 +106,39 @@ function SortableKanbanCard({ strategy }: { strategy: Strategy }) {
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-start gap-2 p-3 bg-[#0A0A0A] border border-[#1A1A1A] rounded-lg hover:border-[#3B82F6]/30 transition-colors"
+      className="flex items-start gap-2 p-3 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-lg hover:border-[#3B82F6]/30 transition-colors"
     >
       <button
         {...attributes}
         {...listeners}
-        className="mt-0.5 text-[#475569] hover:text-[#94A3B8] cursor-grab active:cursor-grabbing"
+        className="mt-0.5 text-[var(--text-muted)] hover:text-[var(--text-secondary)] cursor-grab active:cursor-grabbing"
       >
         <GripVertical className="h-4 w-4" />
       </button>
       <Link href={`/strategies/${strategy.id}`} className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-[#F1F5F9] mb-1 truncate">
+        <p className="text-sm font-medium text-[var(--text-primary)] mb-1 truncate">
           {strategy.name}
         </p>
-        <p className="text-xs text-[#475569] mb-2">
+        <p className="text-xs text-[var(--text-muted)] mb-2">
           {strategy.market || "No market set"}
         </p>
         {bt && (
           <div className="flex gap-3 text-xs">
-            <span className="text-[#94A3B8]">
+            <span className="text-[var(--text-secondary)]">
               WR:{" "}
-              <span className="font-mono text-[#F1F5F9]">
+              <span className="font-mono text-[var(--text-primary)]">
                 {bt.winRate.toFixed(1)}%
               </span>
             </span>
-            <span className="text-[#94A3B8]">
+            <span className="text-[var(--text-secondary)]">
               PF:{" "}
-              <span className="font-mono text-[#F1F5F9]">
+              <span className="font-mono text-[var(--text-primary)]">
                 {bt.profitFactor.toFixed(2)}
               </span>
             </span>
           </div>
         )}
-        <p className="text-[10px] text-[#475569] mt-1">
+        <p className="text-[10px] text-[var(--text-muted)] mt-1">
           {formatDistanceToNow(new Date(strategy.updatedAt), { addSuffix: true })}
         </p>
       </Link>
@@ -164,19 +164,19 @@ function KanbanColumn({
   return (
     <div
       ref={setNodeRef}
-      className="flex-shrink-0 w-[280px] bg-[#050505] rounded-xl border border-[#1A1A1A]"
+      className="flex-shrink-0 w-[280px] bg-[var(--bg-sidebar)] rounded-xl border border-[var(--border-color)]"
     >
-      <div className="flex items-center justify-between p-3 border-b border-[#1A1A1A]">
+      <div className="flex items-center justify-between p-3 border-b border-[var(--border-color)]">
         <div className="flex items-center gap-2">
           <div
             className="w-2 h-2 rounded-full"
             style={{ backgroundColor: config.color }}
           />
-          <span className="text-sm font-medium text-[#F1F5F9]">
+          <span className="text-sm font-medium text-[var(--text-primary)]">
             {config.label}
           </span>
         </div>
-        <span className="text-xs text-[#475569] bg-[#0A0A0A] px-2 py-0.5 rounded">
+        <span className="text-xs text-[var(--text-muted)] bg-[var(--bg-card)] px-2 py-0.5 rounded">
           {strategies.length}
         </span>
       </div>
@@ -296,7 +296,7 @@ export default function StrategiesPage() {
     <div>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold text-[#F1F5F9]">Strategies</h1>
+        <h1 className="text-2xl font-semibold text-[var(--text-primary)]">Strategies</h1>
         <Button
           onClick={() => setShowAddPanel(true)}
           className="bg-[#3B82F6] hover:bg-[#2563EB]"
@@ -322,7 +322,7 @@ export default function StrategiesPage() {
                   "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
                   statusFilter === status
                     ? "bg-[#3B82F6] text-white"
-                    : "bg-[#0A0A0A] text-[#94A3B8] hover:text-[#F1F5F9] border border-[#1A1A1A]"
+                    : "bg-[var(--bg-card)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-color)]"
                 )}
               >
                 {status === "All" ? "All" : config?.label}
@@ -333,7 +333,7 @@ export default function StrategiesPage() {
 
         <div className="flex items-center gap-2 ml-auto">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#475569]" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)]" />
             <Input
               placeholder="Search strategies..."
               value={search}
@@ -355,14 +355,14 @@ export default function StrategiesPage() {
             </SelectContent>
           </Select>
 
-          <div className="flex border border-[#1A1A1A] rounded-lg overflow-hidden">
+          <div className="flex border border-[var(--border-color)] rounded-lg overflow-hidden">
             <button
               onClick={() => setView("list")}
               className={cn(
                 "p-2 transition-colors",
                 view === "list"
-                  ? "bg-[#1A1A1A] text-[#F1F5F9]"
-                  : "text-[#475569] hover:text-[#94A3B8]"
+                  ? "bg-[var(--border-color)] text-[var(--text-primary)]"
+                  : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
               )}
             >
               <List className="h-4 w-4" />
@@ -372,8 +372,8 @@ export default function StrategiesPage() {
               className={cn(
                 "p-2 transition-colors",
                 view === "kanban"
-                  ? "bg-[#1A1A1A] text-[#F1F5F9]"
-                  : "text-[#475569] hover:text-[#94A3B8]"
+                  ? "bg-[var(--border-color)] text-[var(--text-primary)]"
+                  : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
               )}
             >
               <LayoutGrid className="h-4 w-4" />
@@ -393,14 +393,14 @@ export default function StrategiesPage() {
 
       {/* Empty State */}
       {!loading && strategies.length === 0 && (
-        <div className="text-center py-16 bg-[#0A0A0A] border border-[#1A1A1A] rounded-xl">
+        <div className="text-center py-16 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl">
           <div className="w-16 h-16 bg-[#3B82F6]/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Plus className="h-8 w-8 text-[#3B82F6]" />
           </div>
-          <h3 className="text-lg font-medium text-[#F1F5F9] mb-2">
+          <h3 className="text-lg font-medium text-[var(--text-primary)] mb-2">
             No strategies yet
           </h3>
-          <p className="text-sm text-[#94A3B8] mb-4">
+          <p className="text-sm text-[var(--text-secondary)] mb-4">
             Create your first strategy to get started
           </p>
           <Button
@@ -415,18 +415,18 @@ export default function StrategiesPage() {
 
       {/* List View */}
       {!loading && filteredStrategies.length > 0 && view === "list" && (
-        <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-xl overflow-hidden">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl overflow-hidden">
           <table className="w-full">
             <thead>
-              <tr className="bg-[#050505] border-b border-[#1A1A1A]">
-                <th className="text-left px-4 py-3 text-xs font-medium text-[#94A3B8] uppercase">Strategy</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-[#94A3B8] uppercase">Status</th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-[#94A3B8] uppercase">Market</th>
-                <th className="text-right px-4 py-3 text-xs font-medium text-[#94A3B8] uppercase">Win Rate</th>
-                <th className="text-right px-4 py-3 text-xs font-medium text-[#94A3B8] uppercase">Profit Factor</th>
-                <th className="text-right px-4 py-3 text-xs font-medium text-[#94A3B8] uppercase">Max DD</th>
-                <th className="text-right px-4 py-3 text-xs font-medium text-[#94A3B8] uppercase">Net Profit</th>
-                <th className="text-right px-4 py-3 text-xs font-medium text-[#94A3B8] uppercase">Updated</th>
+              <tr className="bg-[var(--bg-sidebar)] border-b border-[var(--border-color)]">
+                <th className="text-left px-4 py-3 text-xs font-medium text-[var(--text-secondary)] uppercase">Strategy</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-[var(--text-secondary)] uppercase">Status</th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-[var(--text-secondary)] uppercase">Market</th>
+                <th className="text-right px-4 py-3 text-xs font-medium text-[var(--text-secondary)] uppercase">Win Rate</th>
+                <th className="text-right px-4 py-3 text-xs font-medium text-[var(--text-secondary)] uppercase">Profit Factor</th>
+                <th className="text-right px-4 py-3 text-xs font-medium text-[var(--text-secondary)] uppercase">Max DD</th>
+                <th className="text-right px-4 py-3 text-xs font-medium text-[var(--text-secondary)] uppercase">Net Profit</th>
+                <th className="text-right px-4 py-3 text-xs font-medium text-[var(--text-secondary)] uppercase">Updated</th>
                 <th className="w-10"></th>
               </tr>
             </thead>
@@ -437,12 +437,12 @@ export default function StrategiesPage() {
                 return (
                   <tr
                     key={strategy.id}
-                    className="border-b border-[#1A1A1A] last:border-0 hover:bg-[#000000] transition-colors"
+                    className="border-b border-[var(--border-color)] last:border-0 hover:bg-[var(--bg-main)] transition-colors"
                   >
                     <td className="px-4 py-3">
                       <Link
                         href={`/strategies/${strategy.id}`}
-                        className="text-sm font-medium text-[#F1F5F9] hover:text-[#3B82F6] transition-colors"
+                        className="text-sm font-medium text-[var(--text-primary)] hover:text-[#3B82F6] transition-colors"
                       >
                         {strategy.name}
                       </Link>
@@ -457,7 +457,7 @@ export default function StrategiesPage() {
                         {statusConfig.label}
                       </Badge>
                     </td>
-                    <td className="px-4 py-3 text-sm text-[#94A3B8]">
+                    <td className="px-4 py-3 text-sm text-[var(--text-secondary)]">
                       {strategy.market || "—"}
                     </td>
                     <td className="px-4 py-3 text-right">
@@ -496,7 +496,7 @@ export default function StrategiesPage() {
                         {bt ? formatINR(bt.netProfit) : "—"}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right text-xs text-[#475569]">
+                    <td className="px-4 py-3 text-right text-xs text-[var(--text-muted)]">
                       {formatDistanceToNow(new Date(strategy.updatedAt), {
                         addSuffix: true,
                       })}
@@ -505,7 +505,7 @@ export default function StrategiesPage() {
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreHorizontal className="h-4 w-4 text-[#475569]" />
+                            <MoreHorizontal className="h-4 w-4 text-[var(--text-muted)]" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
@@ -565,11 +565,11 @@ export default function StrategiesPage() {
           {/* Drag Overlay */}
           <DragOverlay>
             {activeCard && (
-              <div className="p-3 bg-[#0F1629] border border-[#3B82F6] rounded-lg shadow-xl w-[260px] opacity-90">
-                <p className="text-sm font-medium text-[#F1F5F9] mb-1">
+              <div className="p-3 bg-[var(--bg-card)] border border-[#3B82F6] rounded-lg shadow-xl w-[260px] opacity-90">
+                <p className="text-sm font-medium text-[var(--text-primary)] mb-1">
                   {activeCard.name}
                 </p>
-                <p className="text-xs text-[#475569]">
+                <p className="text-xs text-[var(--text-muted)]">
                   {activeCard.market || "No market set"}
                 </p>
               </div>

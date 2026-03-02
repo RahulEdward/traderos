@@ -143,14 +143,14 @@ export default function TasksPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-semibold text-[#F1F5F9]">Tasks</h1>
-          <p className="text-sm text-[#94A3B8] mt-1">
+          <h1 className="text-2xl font-semibold text-[var(--text-primary)]">Tasks</h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
             All tasks across all strategies
           </p>
         </div>
         <Button
           onClick={() => setShowAdd(true)}
-          className="bg-[#3B82F6] hover:bg-[#2563EB]"
+          className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)]"
         >
           <Plus className="h-4 w-4 mr-2" /> Add Task
         </Button>
@@ -159,7 +159,7 @@ export default function TasksPage() {
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-6">
         {/* Status filter */}
-        <div className="flex gap-1 bg-[#050505] border border-[#1A1A1A] rounded-lg p-1">
+        <div className="flex gap-1 bg-[var(--bg-sidebar)] border border-[var(--border-color)] rounded-lg p-1">
           {STATUS_OPTIONS.map((opt) => (
             <button
               key={opt.key}
@@ -167,8 +167,8 @@ export default function TasksPage() {
               className={cn(
                 "text-xs px-3 py-1.5 rounded-md transition-colors",
                 statusFilter === opt.key
-                  ? "bg-[#1A1A1A] text-[#F1F5F9]"
-                  : "text-[#475569] hover:text-[#94A3B8]"
+                  ? "bg-[var(--border-color)] text-[var(--text-primary)]"
+                  : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
               )}
             >
               {opt.label}
@@ -178,7 +178,7 @@ export default function TasksPage() {
 
         {/* Priority filter */}
         <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-          <SelectTrigger className="w-[150px] h-8 text-xs bg-[#050505] border-[#1A1A1A]">
+          <SelectTrigger className="w-[150px] h-8 text-xs bg-[var(--bg-sidebar)] border-[var(--border-color)]">
             <SelectValue placeholder="All Priorities" />
           </SelectTrigger>
           <SelectContent>
@@ -191,7 +191,7 @@ export default function TasksPage() {
 
         {/* Type filter */}
         <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="w-[140px] h-8 text-xs bg-[#050505] border-[#1A1A1A]">
+          <SelectTrigger className="w-[140px] h-8 text-xs bg-[var(--bg-sidebar)] border-[var(--border-color)]">
             <SelectValue placeholder="All Types" />
           </SelectTrigger>
           <SelectContent>
@@ -205,10 +205,10 @@ export default function TasksPage() {
 
       {/* Add Task Form */}
       {showAdd && (
-        <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-xl p-4 mb-6">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-4 mb-6">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium text-[#F1F5F9]">New Task</span>
-            <button onClick={() => setShowAdd(false)} className="text-[#475569] hover:text-[#F1F5F9]">
+            <span className="text-sm font-medium text-[var(--text-primary)]">New Task</span>
+            <button onClick={() => setShowAdd(false)} className="text-[var(--text-muted)] hover:text-[var(--text-primary)]">
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -216,7 +216,7 @@ export default function TasksPage() {
             placeholder="Task title"
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
-            className="bg-[#050505] border-[#1A1A1A] mb-2"
+            className="bg-[var(--bg-sidebar)] border-[var(--border-color)] mb-2"
             autoFocus
           />
           <Textarea
@@ -224,11 +224,11 @@ export default function TasksPage() {
             value={newDesc}
             onChange={(e) => setNewDesc(e.target.value)}
             rows={2}
-            className="bg-[#050505] border-[#1A1A1A] resize-none mb-2"
+            className="bg-[var(--bg-sidebar)] border-[var(--border-color)] resize-none mb-2"
           />
           <div className="flex gap-2 mb-3">
             <Select value={newType} onValueChange={setNewType}>
-              <SelectTrigger className="w-[140px] h-8 text-xs bg-[#050505] border-[#1A1A1A]">
+              <SelectTrigger className="w-[140px] h-8 text-xs bg-[var(--bg-sidebar)] border-[var(--border-color)]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -238,7 +238,7 @@ export default function TasksPage() {
               </SelectContent>
             </Select>
             <Select value={newPriority} onValueChange={setNewPriority}>
-              <SelectTrigger className="w-[130px] h-8 text-xs bg-[#050505] border-[#1A1A1A]">
+              <SelectTrigger className="w-[130px] h-8 text-xs bg-[var(--bg-sidebar)] border-[var(--border-color)]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -247,9 +247,9 @@ export default function TasksPage() {
                 ))}
               </SelectContent>
             </Select>
-            <Input type="date" value={newDueDate} onChange={(e) => setNewDueDate(e.target.value)} className="w-[160px] h-8 text-xs bg-[#050505] border-[#1A1A1A]" />
+            <Input type="date" value={newDueDate} onChange={(e) => setNewDueDate(e.target.value)} className="w-[160px] h-8 text-xs bg-[var(--bg-sidebar)] border-[var(--border-color)]" />
           </div>
-          <Button onClick={handleCreate} disabled={!newTitle.trim() || saving} size="sm" className="bg-[#3B82F6] hover:bg-[#2563EB]">
+          <Button onClick={handleCreate} disabled={!newTitle.trim() || saving} size="sm" className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)]">
             {saving ? "Creating..." : "Create Task"}
           </Button>
         </div>
@@ -259,14 +259,14 @@ export default function TasksPage() {
       {loading ? (
         <div className="space-y-2">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-16 bg-[#0A0A0A] border border-[#1A1A1A] rounded-xl animate-pulse" />
+            <div key={i} className="h-16 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl animate-pulse" />
           ))}
         </div>
       ) : tasks.length === 0 ? (
-        <div className="text-center py-16 bg-[#0A0A0A] border border-[#1A1A1A] rounded-xl">
-          <CheckSquare className="h-10 w-10 text-[#475569] mx-auto mb-3" />
-          <h3 className="text-lg font-medium text-[#F1F5F9] mb-2">No tasks</h3>
-          <p className="text-sm text-[#94A3B8] mb-4">
+        <div className="text-center py-16 bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl">
+          <CheckSquare className="h-10 w-10 text-[var(--text-muted)] mx-auto mb-3" />
+          <h3 className="text-lg font-medium text-[var(--text-primary)] mb-2">No tasks</h3>
+          <p className="text-sm text-[var(--text-secondary)] mb-4">
             {statusFilter !== "ALL" ? "No tasks match your filters" : "Create your first task to track your work"}
           </p>
         </div>
@@ -279,7 +279,7 @@ export default function TasksPage() {
             return (
               <div
                 key={task.id}
-                className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-xl p-4 hover:border-[#3B82F6]/30 transition-colors group"
+                className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-4 hover:border-[#3B82F6]/30 transition-colors group"
               >
                 <div className="flex items-center gap-3">
                   {/* Status indicator */}
@@ -291,13 +291,13 @@ export default function TasksPage() {
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className={cn("text-sm font-medium", task.status === "DONE" ? "text-[#475569] line-through" : "text-[#F1F5F9]")}>
+                      <span className={cn("text-sm font-medium", task.status === "DONE" ? "text-[var(--text-muted)] line-through" : "text-[var(--text-primary)]")}>
                         {task.title}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
                       {task.strategy && (
-                        <span className="text-[10px] text-[#3B82F6]">{task.strategy.name}</span>
+                        <span className="text-[10px] text-[var(--color-primary)]">{task.strategy.name}</span>
                       )}
                       <Badge className="text-[10px] px-1.5 py-0" style={{ backgroundColor: `${typeConfig?.color}20`, color: typeConfig?.color }}>
                         {typeConfig?.label}
@@ -306,7 +306,7 @@ export default function TasksPage() {
                         {priorityConfig?.label}
                       </Badge>
                       {task.dueDate && (
-                        <span className="text-[10px] text-[#475569] flex items-center gap-1">
+                        <span className="text-[10px] text-[var(--text-muted)] flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
                           {format(new Date(task.dueDate), "dd MMM")}
                         </span>
@@ -333,7 +333,7 @@ export default function TasksPage() {
                     )}
                     <button
                       onClick={() => handleDelete(task.id)}
-                      className="opacity-0 group-hover:opacity-100 text-[#475569] hover:text-[#EF4444] p-1 transition-all"
+                      className="opacity-0 group-hover:opacity-100 text-[var(--text-muted)] hover:text-[#EF4444] p-1 transition-all"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>

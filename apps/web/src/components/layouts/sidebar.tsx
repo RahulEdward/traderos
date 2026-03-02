@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { useState, useEffect } from "react";
 import {
   LayoutDashboard,
   Layers,
@@ -43,10 +44,32 @@ const bottomItems = [
   { href: "/help", label: "Help", icon: HelpCircle },
 ];
 
+function useBrokerStatus() {
+  const [status, setStatus] = useState<"CONNECTED" | "DISCONNECTED" | null>(null);
+
+  useEffect(() => {
+    const fetchStatus = () =>
+      fetch("/api/broker/angelone/auth")
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => {
+          const ao = data?.brokers?.find((b: any) => b.platform === "ANGELONE");
+          setStatus(ao ? (ao.status === "CONNECTED" ? "CONNECTED" : "DISCONNECTED") : null);
+        })
+        .catch(() => {});
+
+    fetchStatus();
+    const id = setInterval(fetchStatus, 60_000);
+    return () => clearInterval(id);
+  }, []);
+
+  return status;
+}
+
 export function Sidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const { isCollapsed, toggleSidebar } = useSidebarStore();
+  const brokerStatus = useBrokerStatus();
 
   const user = session?.user;
   const tier = (user as any)?.tier || "FREE";
@@ -102,7 +125,11 @@ export function Sidebar() {
                   pathname.startsWith(item.href));
               const Icon = item.icon;
 
-              const linkContent = (
+              const isBrokerItem = item.href === "/integrations";
+            const dotColor =
+              brokerStatus === "CONNECTED" ? "bg-[#10B981]" : "bg-[#EF4444]";
+
+            const linkContent = (
                 <Link
                   href={item.href}
                   className={cn(
@@ -113,13 +140,30 @@ export function Sidebar() {
                     isCollapsed && "justify-center px-0"
                   )}
                 >
-                  <Icon
-                    className={cn(
-                      "h-5 w-5 shrink-0",
-                      isActive ? "text-[#3B82F6]" : "text-white"
+                  {/* Icon — with dot badge in collapsed mode */}
+                  <div className="relative shrink-0">
+                    <Icon
+                      className={cn(
+                        "h-5 w-5",
+                        isActive ? "text-[#3B82F6]" : "text-white"
+                      )}
+                    />
+                    {isBrokerItem && brokerStatus && isCollapsed && (
+                      <span
+                        className={cn(
+                          "absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full border border-[#050505]",
+                          dotColor
+                        )}
+                      />
                     )}
-                  />
+                  </div>
                   {!isCollapsed && <span>{item.label}</span>}
+                  {/* Dot at end of row in expanded mode */}
+                  {isBrokerItem && brokerStatus && !isCollapsed && (
+                    <span
+                      className={cn("ml-auto h-2 w-2 rounded-full shrink-0", dotColor)}
+                    />
+                  )}
                 </Link>
               );
 

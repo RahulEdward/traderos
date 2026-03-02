@@ -147,9 +147,9 @@ const PRICING = [
 
 export function LandingPage() {
   return (
-    <div className="min-h-screen bg-[#0A0E1A] text-[#F1F5F9]">
+    <div className="min-h-screen bg-[var(--bg-main)] text-[#F1F5F9]">
       {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 bg-[#0A0E1A]/80 backdrop-blur-md border-b border-[#1E2A45]">
+      <nav className="fixed top-0 w-full z-50 bg-[var(--bg-main)]/80 backdrop-blur-md border-b border-[var(--border-color)]">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-xl font-bold text-[#3B82F6]">TradeOS</span>
@@ -222,7 +222,7 @@ export function LandingPage() {
               </Button>
             </Link>
             <a href="#features">
-              <Button size="lg" variant="outline" className="border-[#1E2A45] text-[#94A3B8] hover:text-[#F1F5F9] text-base px-8">
+              <Button size="lg" variant="outline" className="border-[var(--border-color)] text-[#94A3B8] hover:text-[#F1F5F9] text-base px-8">
                 See How It Works
               </Button>
             </a>
@@ -251,7 +251,7 @@ export function LandingPage() {
       </section>
 
       {/* Problem Section */}
-      <section className="py-20 px-6 border-t border-[#1E2A45]">
+      <section className="py-20 px-6 border-t border-[var(--border-color)]">
         <div className="max-w-6xl mx-auto">
           <AnimatedSection className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
@@ -263,7 +263,7 @@ export function LandingPage() {
               const Icon = problem.icon;
               return (
                 <AnimatedSection key={i}>
-                  <div className="bg-[#0F1629] border border-[#1E2A45] rounded-xl p-6 h-full">
+                  <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-6 h-full">
                     <Icon className="h-8 w-8 text-[#EF4444] mb-4" />
                     <h3 className="text-lg font-semibold text-[#F1F5F9] mb-2">{problem.title}</h3>
                     <p className="text-sm text-[#94A3B8]">{problem.description}</p>
@@ -276,7 +276,7 @@ export function LandingPage() {
       </section>
 
       {/* Solution Section */}
-      <section className="py-20 px-6 border-t border-[#1E2A45]">
+      <section className="py-20 px-6 border-t border-[var(--border-color)]">
         <div className="max-w-6xl mx-auto">
           <AnimatedSection className="text-center mb-4">
             <Badge className="bg-[#10B981]/10 text-[#10B981] border-[#10B981]/30 mb-4 px-3 py-1">
@@ -296,7 +296,7 @@ export function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 px-6 border-t border-[#1E2A45]">
+      <section id="features" className="py-20 px-6 border-t border-[var(--border-color)]">
         <div className="max-w-6xl mx-auto">
           <AnimatedSection className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Everything you need</h2>
@@ -307,7 +307,7 @@ export function LandingPage() {
               const Icon = feature.icon;
               return (
                 <AnimatedSection key={i}>
-                  <div className="bg-[#0F1629] border border-[#1E2A45] rounded-xl p-6 h-full hover:border-[#3B82F6]/30 transition-colors group">
+                  <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-6 h-full hover:border-[#3B82F6]/30 transition-colors group">
                     <div
                       className="w-12 h-12 rounded-lg flex items-center justify-center mb-4"
                       style={{ backgroundColor: `${feature.color}20` }}
@@ -327,7 +327,7 @@ export function LandingPage() {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-20 px-6 border-t border-[#1E2A45]">
+      <section id="pricing" className="py-20 px-6 border-t border-[var(--border-color)]">
         <div className="max-w-6xl mx-auto">
           <AnimatedSection className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Simple, transparent pricing</h2>
@@ -337,10 +337,10 @@ export function LandingPage() {
             {PRICING.map((plan, i) => (
               <AnimatedSection key={i}>
                 <div
-                  className={`bg-[#0F1629] rounded-xl p-6 h-full flex flex-col ${
+                  className={`bg-[var(--bg-card)] rounded-xl p-6 h-full flex flex-col ${
                     plan.highlighted
                       ? "border-2 border-[#3B82F6] relative"
-                      : "border border-[#1E2A45]"
+                      : "border border-[var(--border-color)]"
                   }`}
                 >
                   {plan.highlighted && (
@@ -372,7 +372,7 @@ export function LandingPage() {
                       className={`w-full ${
                         plan.highlighted
                           ? "bg-[#3B82F6] hover:bg-[#2563EB]"
-                          : "bg-transparent border border-[#1E2A45] hover:bg-[#0F1629]"
+                          : "bg-transparent border border-[var(--border-color)] hover:bg-[var(--bg-card)]"
                       }`}
                     >
                       {plan.cta}
@@ -387,7 +387,7 @@ export function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-6 border-t border-[#1E2A45]">
+      <section className="py-20 px-6 border-t border-[var(--border-color)]">
         <div className="max-w-3xl mx-auto text-center">
           <AnimatedSection>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
@@ -407,7 +407,7 @@ export function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-[#1E2A45] py-12 px-6">
+      <footer className="border-t border-[var(--border-color)] py-12 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
@@ -447,7 +447,7 @@ export function LandingPage() {
           </div>
 
           {/* SEBI Disclaimer */}
-          <div className="border-t border-[#1E2A45] pt-6 mt-6">
+          <div className="border-t border-[var(--border-color)] pt-6 mt-6">
             <p className="text-xs text-[#475569] mb-4">
               <strong>SEBI Disclaimer:</strong> TradeOS India is a strategy management and analysis tool. It does not provide investment advice, execute trades, or guarantee returns. Trading in securities markets is subject to market risks. Past performance of strategies in backtests does not guarantee future results. Users should consult with a SEBI-registered financial advisor before making investment decisions. TradeOS India is not a SEBI-registered intermediary.
             </p>

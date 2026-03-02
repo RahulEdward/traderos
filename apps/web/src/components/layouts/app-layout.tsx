@@ -5,7 +5,7 @@ import { SessionProvider } from "@/components/shared/session-provider";
 
 function AppLayoutInner({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[#000000]">
+    <div className="min-h-screen bg-[var(--bg-main)]">
       <TopNavbar />
       <main className="min-h-[calc(100vh-48px)]">
         <div className="p-6 lg:p-8">{children}</div>

@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EquityCurveChart } from "@/components/charts/equity-curve-chart";
+import { InfoTooltip } from "@/components/shared/info-tooltip";
 import { cn } from "@/lib/utils";
 import { formatINR, formatPercentage, STRATEGY_STATUS_CONFIG } from "@tradeos/shared";
 import {
@@ -215,12 +216,12 @@ export default function PortfolioDetailPage() {
       {/* Metrics Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
         {[
-          { label: "Total Net Profit", value: formatINR(totalNetProfit), color: totalNetProfit >= 0 ? "#10B981" : "#EF4444", icon: BarChart3 },
-          { label: "Combined Win Rate", value: formatPercentage(avgWinRate), color: avgWinRate > 55 ? "#10B981" : "#F59E0B", icon: Target },
-          { label: "Portfolio Sharpe", value: avgSharpe.toFixed(2), color: "#06B6D4", icon: Activity },
-          { label: "Strategies", value: String(strategies.length), color: "#3B82F6", icon: Layers },
-          { label: "Capital at Risk", value: `${strategies.reduce((s: number, ps: any) => s + ps.capitalAllocationPct, 0)}%`, color: "#F59E0B", icon: Shield },
-          { label: "With Data", value: `${strategiesWithData}/${strategies.length}`, color: "#A855F7", icon: TrendingDown },
+          { label: "Total Net Profit", value: formatINR(totalNetProfit), color: totalNetProfit >= 0 ? "#10B981" : "#EF4444", icon: BarChart3, tooltip: "Combined profit/loss across all strategies in this portfolio" },
+          { label: "Combined Win Rate", value: formatPercentage(avgWinRate), color: avgWinRate > 55 ? "#10B981" : "#F59E0B", icon: Target, tooltip: "Weighted average win rate of all strategies in this portfolio" },
+          { label: "Portfolio Sharpe", value: avgSharpe.toFixed(2), color: "#06B6D4", icon: Activity, tooltip: "Risk-adjusted return of the combined portfolio. Above 1.0 is acceptable, above 2.0 is very good" },
+          { label: "Strategies", value: String(strategies.length), color: "#3B82F6", icon: Layers, tooltip: "Number of trading strategies included in this portfolio" },
+          { label: "Capital at Risk", value: `${strategies.reduce((s: number, ps: any) => s + ps.capitalAllocationPct, 0)}%`, color: "#F59E0B", icon: Shield, tooltip: "Maximum capital exposure across all active positions" },
+          { label: "With Data", value: `${strategiesWithData}/${strategies.length}`, color: "#A855F7", icon: TrendingDown, tooltip: "Number of strategies that have backtest data imported" },
         ].map((m) => {
           const Icon = m.icon;
           return (
@@ -228,6 +229,7 @@ export default function PortfolioDetailPage() {
               <div className="flex items-center gap-2 mb-2">
                 <Icon className="h-3.5 w-3.5" style={{ color: m.color }} />
                 <span className="text-[10px] text-[#475569]">{m.label}</span>
+                <InfoTooltip text={m.tooltip} />
               </div>
               <p className="text-lg font-mono font-semibold" style={{ color: m.color }}>
                 {m.value}

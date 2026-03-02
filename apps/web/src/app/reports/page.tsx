@@ -128,7 +128,7 @@ export default function ReportsPage() {
   if (loading) {
     return (
       <div>
-        <h1 className="text-2xl font-semibold text-[#F1F5F9] mb-6">Reports</h1>
+        <h1 className="text-2xl font-semibold text-[var(--text-primary)] mb-6">Reports</h1>
         <div className="space-y-4">
           {[1, 2, 3].map((i) => <Skeleton key={i} className="h-[80px]" />)}
         </div>
@@ -140,27 +140,27 @@ export default function ReportsPage() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-semibold text-[#F1F5F9]">Reports</h1>
-          <p className="text-sm text-[#94A3B8] mt-1">
+          <h1 className="text-2xl font-semibold text-[var(--text-primary)]">Reports</h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
             Generate and share strategy & portfolio reports
           </p>
         </div>
         <Dialog open={showGenerateDialog} onOpenChange={setShowGenerateDialog}>
           <DialogTrigger asChild>
-            <Button className="bg-[#3B82F6] hover:bg-[#2563EB]">
+            <Button className="bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)]">
               <Plus className="h-4 w-4 mr-2" />
               Generate Report
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-[#0F1629] border-[#1E2A45]">
+          <DialogContent className="bg-[var(--bg-card)] border-[var(--border-color)]">
             <DialogHeader>
-              <DialogTitle className="text-[#F1F5F9]">Generate Report</DialogTitle>
+              <DialogTitle className="text-[var(--text-primary)]">Generate Report</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 mt-4">
               <div>
-                <label className="text-sm text-[#94A3B8] mb-1 block">Report Type</label>
+                <label className="text-sm text-[var(--text-secondary)] mb-1 block">Report Type</label>
                 <Select value={reportType} onValueChange={(v) => { setReportType(v); setSelectedId(""); }}>
-                  <SelectTrigger className="bg-[#0A0E1A] border-[#1E2A45]">
+                  <SelectTrigger className="bg-[var(--bg-main)] border-[var(--border-color)]">
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -173,9 +173,9 @@ export default function ReportsPage() {
 
               {reportType === "STRATEGY" && (
                 <div>
-                  <label className="text-sm text-[#94A3B8] mb-1 block">Strategy</label>
+                  <label className="text-sm text-[var(--text-secondary)] mb-1 block">Strategy</label>
                   <Select value={selectedId} onValueChange={setSelectedId}>
-                    <SelectTrigger className="bg-[#0A0E1A] border-[#1E2A45]">
+                    <SelectTrigger className="bg-[var(--bg-main)] border-[var(--border-color)]">
                       <SelectValue placeholder="Select strategy" />
                     </SelectTrigger>
                     <SelectContent>
@@ -189,9 +189,9 @@ export default function ReportsPage() {
 
               {reportType === "PORTFOLIO" && (
                 <div>
-                  <label className="text-sm text-[#94A3B8] mb-1 block">Portfolio</label>
+                  <label className="text-sm text-[var(--text-secondary)] mb-1 block">Portfolio</label>
                   <Select value={selectedId} onValueChange={setSelectedId}>
-                    <SelectTrigger className="bg-[#0A0E1A] border-[#1E2A45]">
+                    <SelectTrigger className="bg-[var(--bg-main)] border-[var(--border-color)]">
                       <SelectValue placeholder="Select portfolio" />
                     </SelectTrigger>
                     <SelectContent>
@@ -204,7 +204,7 @@ export default function ReportsPage() {
               )}
 
               <Button
-                className="w-full bg-[#3B82F6] hover:bg-[#2563EB]"
+                className="w-full bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)]"
                 onClick={generateReport}
                 disabled={generating || !reportType || (reportType !== "WEEKLY" && !selectedId)}
               >
@@ -220,13 +220,13 @@ export default function ReportsPage() {
         {Object.entries(TYPE_CONFIG).map(([key, config]) => {
           const Icon = config.icon;
           return (
-            <div key={key} className="bg-[#0F1629] border border-[#1E2A45] rounded-xl p-4 flex items-start gap-3">
+            <div key={key} className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-4 flex items-start gap-3">
               <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${config.color}20` }}>
                 <Icon className="h-5 w-5" style={{ color: config.color }} />
               </div>
               <div>
-                <p className="text-sm font-medium text-[#F1F5F9]">{config.label}</p>
-                <p className="text-xs text-[#475569] mt-1">
+                <p className="text-sm font-medium text-[var(--text-primary)]">{config.label}</p>
+                <p className="text-xs text-[var(--text-muted)] mt-1">
                   {key === "STRATEGY" && "Full metrics, charts & AI analysis for a strategy"}
                   {key === "PORTFOLIO" && "Combined metrics, allocation & correlation analysis"}
                   {key === "WEEKLY" && "Auto-generated performance summary for the week"}
@@ -238,12 +238,12 @@ export default function ReportsPage() {
       </div>
 
       {/* Reports Table */}
-      <div className="bg-[#0F1629] border border-[#1E2A45] rounded-xl p-6">
-        <h2 className="text-lg font-semibold text-[#F1F5F9] mb-4">Generated Reports</h2>
+      <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-6">
+        <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Generated Reports</h2>
         {reports.length === 0 ? (
           <div className="text-center py-12">
-            <FileText className="h-12 w-12 text-[#475569] mx-auto mb-3" />
-            <p className="text-sm text-[#475569]">
+            <FileText className="h-12 w-12 text-[var(--text-muted)] mx-auto mb-3" />
+            <p className="text-sm text-[var(--text-muted)]">
               No reports generated yet. Click &ldquo;Generate Report&rdquo; to create your first report.
             </p>
           </div>
@@ -255,7 +255,7 @@ export default function ReportsPage() {
               return (
                 <div
                   key={report.id}
-                  className="flex items-center justify-between p-4 bg-[#0A0E1A] border border-[#1E2A45] rounded-lg hover:border-[#3B82F6]/30 transition-colors"
+                  className="flex items-center justify-between p-4 bg-[var(--bg-main)] border border-[var(--border-color)] rounded-lg hover:border-[#3B82F6]/30 transition-colors"
                 >
                   <div className="flex items-center gap-4">
                     <div
@@ -265,7 +265,7 @@ export default function ReportsPage() {
                       <Icon className="h-5 w-5" style={{ color: typeConfig?.color || "#3B82F6" }} />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-[#F1F5F9]">{report.title}</p>
+                      <p className="text-sm font-medium text-[var(--text-primary)]">{report.title}</p>
                       <div className="flex items-center gap-3 mt-1">
                         <Badge
                           className="text-xs"
@@ -276,7 +276,7 @@ export default function ReportsPage() {
                         >
                           {typeConfig?.label || report.type}
                         </Badge>
-                        <span className="text-xs text-[#475569] flex items-center gap-1">
+                        <span className="text-xs text-[var(--text-muted)] flex items-center gap-1">
                           <Clock className="h-3 w-3" />
                           {formatDistanceToNow(new Date(report.createdAt), { addSuffix: true })}
                         </span>

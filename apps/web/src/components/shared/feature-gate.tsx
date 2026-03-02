@@ -84,7 +84,7 @@ export function FeatureGate({ feature, children, currentCount = 0, fallback }: F
     <div className="relative">
       <div className="blur-sm pointer-events-none select-none opacity-40">{children}</div>
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="bg-[#0F1629] border border-[#1E2A45] rounded-xl p-6 text-center max-w-sm shadow-lg">
+        <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-6 text-center max-w-sm shadow-lg">
           <div className="w-12 h-12 bg-[#3B82F6]/20 rounded-full flex items-center justify-center mx-auto mb-3">
             <Lock className="h-6 w-6 text-[#3B82F6]" />
           </div>
