@@ -20,9 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { InfoTooltip } from "@/components/shared/info-tooltip";
-import { interpretBacktestResults } from "@/lib/backtest/interpretations";
-
-const REPORT_STORAGE_KEY_PREFIX = "tradeos_backtest_report_";
+import { toast } from "sonner";
 
 interface BacktestRunnerProps {
   strategyId: string;
@@ -115,32 +113,204 @@ export function BacktestRunner({ strategyId, strategyName, hasTrades }: Backtest
 
   const stats = result?.statistics;
 
-  const downloadReport = () => {
+  const safeNum = (v: any, decimals = 2): string => {
+    if (v === null || v === undefined || !isFinite(v)) return "0";
+    return Number(v).toFixed(decimals);
+  };
+
+  const safeINR = (v: any): string => {
+    const n = v === null || v === undefined || !isFinite(v) ? 0 : Number(v);
+    return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
+  };
+
+  const safePct = (v: any): string => {
+    if (v === null || v === undefined || !isFinite(v)) return "0.0%";
+    return `${Number(v).toFixed(1)}%`;
+  };
+
+  const downloadReport = async () => {
     if (!stats) return;
     setGeneratingReport(true);
     try {
-      const interpretation = interpretBacktestResults(
-        stats,
-        selectedMethod,
-        strategyName
-      );
-      const reportData = {
-        strategyName,
-        strategyId,
-        method: selectedMethod,
-        numPaths: result.numPaths,
-        backtestVersion: undefined,
-        stats,
-        interpretation,
-        generatedAt: new Date().toISOString(),
+      const methodLabel = selectedMethod === "WALK_FORWARD" ? "Walk-Forward"
+        : selectedMethod === "CROSS_VALIDATION" ? "Purged K-Fold CV"
+          : selectedMethod === "CPCV" ? "CPCV (Combinatorial Purged CV)"
+            : "Synthetic Data";
+
+      const s = stats;
+      const dateStr = new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+
+      // Determine verdict
+      const verdictScore = (() => {
+        let score = 0;
+        let total = 0;
+        const check = (v: boolean) => { total += 2; if (v) score += 2; };
+        check(s.psr >= 0.95); check(s.dsr >= 0.95); check(s.strategyRisk <= 0.2);
+        check(s.annualizedSharpe >= 1.5); check(s.hitRatio >= 0.55); check(s.profitFactor >= 1.5);
+        check(s.maxDrawdownPct <= 15); check(s.calmarRatio >= 1.0);
+        return Math.round((score / total) * 100);
+      })();
+      const verdict = verdictScore >= 75 ? "STRONG ✅" : verdictScore >= 55 ? "GOOD 👍" : verdictScore >= 35 ? "WEAK ⚠️" : "FAILED ❌";
+      const verdictColor = verdictScore >= 75 ? "#10B981" : verdictScore >= 55 ? "#3B82F6" : verdictScore >= 35 ? "#F59E0B" : "#EF4444";
+
+      const statusBadge = (value: number, greenThresh: number, yellowThresh: number, isLower = false) => {
+        const pass = isLower ? value <= greenThresh : value >= greenThresh;
+        const borderline = isLower ? value <= yellowThresh : value >= yellowThresh;
+        const color = pass ? "#10B981" : borderline ? "#F59E0B" : "#EF4444";
+        const label = pass ? "✓ PASS" : borderline ? "~ BORDERLINE" : "✗ FAIL";
+        return `<span style="background:${color}15;color:${color};border:1px solid ${color}40;border-radius:4px;padding:2px 6px;font-size:9px;font-weight:700">${label}</span>`;
       };
-      localStorage.setItem(
-        `${REPORT_STORAGE_KEY_PREFIX}${strategyId}`,
-        JSON.stringify(reportData)
-      );
-      window.open(`/backtest-report/${strategyId}`, "_blank");
+
+      const html = `
+<div id="pdf-container" style="background:#0A0E1A;color:#F1F5F9;font-family:Inter,-apple-system,system-ui,sans-serif;line-height:1.6;width:860px;padding:40px 30px;box-sizing:border-box">
+  <div style="background:linear-gradient(135deg,#0F172A,#0F1629);border:1px solid #1E2A45;border-radius:12px;padding:22px 26px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:flex-start">
+    <div>
+      <div style="font-size:22px;font-weight:800;color:#3B82F6">TradeOS<span style="font-size:14px;font-weight:600;color:#06B6D4">India</span></div>
+      <div style="font-size:10px;color:#64748B;text-transform:uppercase;letter-spacing:2px;margin-bottom:14px">Backtest Analysis Report</div>
+      <div style="font-size:20px;font-weight:700;color:#F1F5F9;margin-bottom:4px">${strategyName}</div>
+      <div style="font-size:13px;color:#94A3B8">Method: <b style="color:#3B82F6;font-weight:600">${methodLabel}</b>${result.numPaths ? ` · ${result.numPaths.toLocaleString()} paths analyzed` : ""}</div>
+      <div style="font-size:11px;color:#64748B;margin-top:4px">Generated: ${dateStr} · ${s.totalTrades || s.totalBets || 0} trades · ${safeNum((s.totalDays || 0) / 365.25, 1)} years of data</div>
+    </div>
+    <div style="text-align:center;background:${verdictColor}15;border:1px solid ${verdictColor}40;border-radius:12px;padding:14px 22px;min-width:152px;flex-shrink:0">
+      <div style="font-size:10px;color:#94A3B8;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px">Overall Verdict</div>
+      <div style="font-size:20px;font-weight:800;color:${verdictColor}">${verdict}</div>
+      <div style="font-size:30px;font-weight:800;color:${verdictColor}">${verdictScore}<span style="font-size:14px;font-weight:500;color:#64748B">/100</span></div>
+    </div>
+  </div>
+
+  <div style="font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;border-bottom:1px solid #1E2A45;padding-bottom:5px">Key Metrics at a Glance</div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">
+    <div style="border-radius:8px;padding:8px 10px;text-align:center;background:${s.annualizedSharpe >= 1.5 ? "#10B981" : s.annualizedSharpe >= 0.5 ? "#F59E0B" : "#EF4444"}12;border:1px solid ${s.annualizedSharpe >= 1.5 ? "#10B981" : s.annualizedSharpe >= 0.5 ? "#F59E0B" : "#EF4444"}30">
+      <div style="font-size:8px;color:#64748B;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px">Annualized Sharpe</div>
+      <div style="font-size:16px;font-weight:700;color:${s.annualizedSharpe >= 1.5 ? "#10B981" : s.annualizedSharpe >= 0.5 ? "#F59E0B" : "#EF4444"}">${safeNum(s.annualizedSharpe)}</div>
+    </div>
+    <div style="border-radius:8px;padding:8px 10px;text-align:center;background:${s.psr >= 0.95 ? "#10B981" : s.psr >= 0.5 ? "#F59E0B" : "#EF4444"}12;border:1px solid ${s.psr >= 0.95 ? "#10B981" : s.psr >= 0.5 ? "#F59E0B" : "#EF4444"}30">
+      <div style="font-size:8px;color:#64748B;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px">PSR</div>
+      <div style="font-size:16px;font-weight:700;color:${s.psr >= 0.95 ? "#10B981" : s.psr >= 0.5 ? "#F59E0B" : "#EF4444"}">${safePct(s.psr * 100)}</div>
+    </div>
+    <div style="border-radius:8px;padding:8px 10px;text-align:center;background:${s.hitRatio >= 0.55 ? "#10B981" : s.hitRatio >= 0.45 ? "#F59E0B" : "#EF4444"}12;border:1px solid ${s.hitRatio >= 0.55 ? "#10B981" : s.hitRatio >= 0.45 ? "#F59E0B" : "#EF4444"}30">
+      <div style="font-size:8px;color:#64748B;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px">Win Rate</div>
+      <div style="font-size:16px;font-weight:700;color:${s.hitRatio >= 0.55 ? "#10B981" : s.hitRatio >= 0.45 ? "#F59E0B" : "#EF4444"}">${safePct(s.hitRatio * 100)}</div>
+    </div>
+    <div style="border-radius:8px;padding:8px 10px;text-align:center;background:${s.profitFactor >= 1.5 ? "#10B981" : s.profitFactor >= 1.0 ? "#F59E0B" : "#EF4444"}12;border:1px solid ${s.profitFactor >= 1.5 ? "#10B981" : s.profitFactor >= 1.0 ? "#F59E0B" : "#EF4444"}30">
+      <div style="font-size:8px;color:#64748B;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px">Profit Factor</div>
+      <div style="font-size:16px;font-weight:700;color:${s.profitFactor >= 1.5 ? "#10B981" : s.profitFactor >= 1.0 ? "#F59E0B" : "#EF4444"}">${safeNum(s.profitFactor)}</div>
+    </div>
+    <div style="border-radius:8px;padding:8px 10px;text-align:center;background:${s.pnl > 0 ? "#10B981" : "#EF4444"}12;border:1px solid ${s.pnl > 0 ? "#10B981" : "#EF4444"}30">
+      <div style="font-size:8px;color:#64748B;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px">Net P&amp;L</div>
+      <div style="font-size:16px;font-weight:700;color:${s.pnl > 0 ? "#10B981" : "#EF4444"}">${safeINR(s.pnl)}</div>
+    </div>
+    <div style="border-radius:8px;padding:8px 10px;text-align:center;background:${s.maxDrawdownPct <= 15 ? "#10B981" : s.maxDrawdownPct <= 30 ? "#F59E0B" : "#EF4444"}12;border:1px solid ${s.maxDrawdownPct <= 15 ? "#10B981" : s.maxDrawdownPct <= 30 ? "#F59E0B" : "#EF4444"}30">
+      <div style="font-size:8px;color:#64748B;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px">Max Drawdown</div>
+      <div style="font-size:16px;font-weight:700;color:${s.maxDrawdownPct <= 15 ? "#10B981" : s.maxDrawdownPct <= 30 ? "#F59E0B" : "#EF4444"}">${safePct(s.maxDrawdownPct)}</div>
+    </div>
+    <div style="border-radius:8px;padding:8px 10px;text-align:center;background:${s.strategyRisk <= 0.2 ? "#10B981" : s.strategyRisk <= 0.4 ? "#F59E0B" : "#EF4444"}12;border:1px solid ${s.strategyRisk <= 0.2 ? "#10B981" : s.strategyRisk <= 0.4 ? "#F59E0B" : "#EF4444"}30">
+      <div style="font-size:8px;color:#64748B;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px">Strategy Risk</div>
+      <div style="font-size:16px;font-weight:700;color:${s.strategyRisk <= 0.2 ? "#10B981" : s.strategyRisk <= 0.4 ? "#F59E0B" : "#EF4444"}">${safePct(s.strategyRisk * 100)}</div>
+    </div>
+    <div style="border-radius:8px;padding:8px 10px;text-align:center;background:${s.calmarRatio >= 1.0 ? "#10B981" : s.calmarRatio >= 0.3 ? "#F59E0B" : "#EF4444"}12;border:1px solid ${s.calmarRatio >= 1.0 ? "#10B981" : s.calmarRatio >= 0.3 ? "#F59E0B" : "#EF4444"}30">
+      <div style="font-size:8px;color:#64748B;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px">Calmar Ratio</div>
+      <div style="font-size:16px;font-weight:700;color:${s.calmarRatio >= 1.0 ? "#10B981" : s.calmarRatio >= 0.3 ? "#F59E0B" : "#EF4444"}">${safeNum(s.calmarRatio)}</div>
+    </div>
+  </div>
+
+  <div style="background:#0F1629;border:1px solid #1E2A45;border-radius:12px;padding:14px 16px;margin-bottom:12px">
+    <div style="font-size:14px;font-weight:700;color:#F1F5F9;margin-bottom:8px">📈 Performance</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px;border-bottom:1px solid #1E2A4520"><span style="color:#94A3B8">Net P&amp;L</span><span style="color:#F1F5F9;font-weight:600">${safeINR(s.pnl)}</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px;border-bottom:1px solid #1E2A4520"><span style="color:#94A3B8">Hit Ratio (Win Rate)</span><span style="color:#F1F5F9;font-weight:600">${safePct(s.hitRatio * 100)} ${statusBadge(s.hitRatio, 0.55, 0.45)}</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px;border-bottom:1px solid #1E2A4520"><span style="color:#94A3B8">Profit Factor</span><span style="color:#F1F5F9;font-weight:600">${safeNum(s.profitFactor)} ${statusBadge(s.profitFactor, 1.5, 1.0)}</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px;border-bottom:1px solid #1E2A4520"><span style="color:#94A3B8">Expectancy</span><span style="color:#F1F5F9;font-weight:600">${safeINR(s.expectancy)}</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px;border-bottom:1px solid #1E2A4520"><span style="color:#94A3B8">Annualized Sharpe</span><span style="color:#F1F5F9;font-weight:600">${safeNum(s.annualizedSharpe)} ${statusBadge(s.annualizedSharpe, 1.5, 0.5)}</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px;border-bottom:1px solid #1E2A4520"><span style="color:#94A3B8">Sortino Ratio</span><span style="color:#F1F5F9;font-weight:600">${safeNum(s.sortinoRatio)}</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px;border-bottom:1px solid #1E2A4520"><span style="color:#94A3B8">Total Trades</span><span style="color:#F1F5F9;font-weight:600">${s.totalTrades || s.totalBets || 0}</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px"><span style="color:#94A3B8">Trades/Year</span><span style="color:#F1F5F9;font-weight:600">${safeNum(s.frequencyOfBets, 0)}</span></div>
+  </div>
+
+  <div style="background:#0F1629;border:1px solid #1E2A45;border-radius:12px;padding:14px 16px;margin-bottom:12px">
+    <div style="font-size:14px;font-weight:700;color:#F1F5F9;margin-bottom:8px">🛡️ Risk &amp; Drawdowns</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px;border-bottom:1px solid #1E2A4520"><span style="color:#94A3B8">Max Drawdown</span><span style="color:#F1F5F9;font-weight:600">${safeINR(s.maxDrawdown)} (${safePct(s.maxDrawdownPct)})</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px;border-bottom:1px solid #1E2A4520"><span style="color:#94A3B8">95th Percentile DD</span><span style="color:#F1F5F9;font-weight:600">${safeINR(s.drawdown95)}</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px;border-bottom:1px solid #1E2A4520"><span style="color:#94A3B8">95th Percentile TuW</span><span style="color:#F1F5F9;font-weight:600">${s.timeUnderWater95 || 0} days</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px;border-bottom:1px solid #1E2A4520"><span style="color:#94A3B8">Recovery Factor</span><span style="color:#F1F5F9;font-weight:600">${safeNum(s.recoveryFactor)}</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px;border-bottom:1px solid #1E2A4520"><span style="color:#94A3B8">Calmar Ratio</span><span style="color:#F1F5F9;font-weight:600">${safeNum(s.calmarRatio)} ${statusBadge(s.calmarRatio, 1.0, 0.3)}</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px"><span style="color:#94A3B8">Strategy Risk</span><span style="color:#F1F5F9;font-weight:600">${safePct(s.strategyRisk * 100)} ${statusBadge(s.strategyRisk, 0.2, 0.4, true)}</span></div>
+  </div>
+
+  <div style="background:#0F1629;border:1px solid #1E2A45;border-radius:12px;padding:14px 16px;margin-bottom:12px">
+    <div style="font-size:14px;font-weight:700;color:#F1F5F9;margin-bottom:8px">🔬 Statistical Validity (AFML)</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px;border-bottom:1px solid #1E2A4520"><span style="color:#94A3B8">PSR (Probabilistic Sharpe)</span><span style="color:#F1F5F9;font-weight:600">${safePct(s.psr * 100)} ${statusBadge(s.psr, 0.95, 0.5)}</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px;border-bottom:1px solid #1E2A4520"><span style="color:#94A3B8">DSR (Deflated Sharpe)</span><span style="color:#F1F5F9;font-weight:600">${safePct(s.dsr * 100)} ${statusBadge(s.dsr, 0.95, 0.5)}</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px;border-bottom:1px solid #1E2A4520"><span style="color:#94A3B8">Implied Precision (p*)</span><span style="color:#F1F5F9;font-weight:600">${safePct((s.impliedPrecision || 0) * 100)}</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px;border-bottom:1px solid #1E2A4520"><span style="color:#94A3B8">Avg Holding Period</span><span style="color:#F1F5F9;font-weight:600">${safeNum(s.avgHoldingPeriod, 1)} days</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px"><span style="color:#94A3B8">Long Ratio</span><span style="color:#F1F5F9;font-weight:600">${safePct(s.ratioOfLongs * 100)}</span></div>
+  </div>
+</div>`;
+
+      // Wait for libraries to load dynamically (ensures JS bundle doesn't bulk up automatically)
+      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+        import("jspdf"),
+        import("html2canvas-pro")
+      ]);
+
+      const container = document.createElement("div");
+      // Render it off-screen but ensure it is not constrained by viewport
+      container.style.position = "absolute";
+      container.style.left = "-9999px";
+      container.style.top = "0";
+      container.style.width = "860px";
+      // ensure we don't clip height
+      container.style.height = "auto";
+      container.style.overflow = "visible";
+      container.innerHTML = html;
+      document.body.appendChild(container);
+
+      // Give browser time to paint images/fonts
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      const element = container.firstElementChild as HTMLElement;
+
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#0A0E1A",
+        logging: false,
+        width: 860,
+        height: element.offsetHeight,
+        windowWidth: 860,
+        windowHeight: element.offsetHeight
+      });
+
+      document.body.removeChild(container);
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.98);
+
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      // Total theoretical height of the image in PDF terms
+      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      let heightLeft = imgHeight;
+      let position = 0; // The Y offset to "pull up" the image on subsequent pages
+
+      // 1. Add first page
+      pdf.addImage(imgData, "JPEG", 0, position, pdfWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      // 2. Add remaining pages (if content is taller than 1 A4 page)
+      while (heightLeft > 0) {
+        position -= pageHeight; // Slide the image UP exactly one page height
+        pdf.addPage();
+        pdf.addImage(imgData, "JPEG", 0, position, pdfWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save(`${strategyName.replace(/[^a-zA-Z0-9]/g, "_")}_AFML_Report.pdf`);
+
+      toast.success("PDF Report downloaded successfully.");
     } catch (e) {
       console.error("Failed to generate report:", e);
+      toast.error("Failed to generate PDF report. Please try again.");
     } finally {
       setGeneratingReport(false);
     }
@@ -161,11 +331,10 @@ export function BacktestRunner({ strategyId, strategyName, hasTrades }: Backtest
               <button
                 key={method.id}
                 onClick={() => setSelectedMethod(method.id)}
-                className={`relative text-left p-4 rounded-xl border transition-all ${
-                  isSelected
-                    ? "border-[var(--color-primary)] bg-[var(--color-primary)]/5"
-                    : "border-[var(--border-color)] bg-[var(--bg-card)] hover:border-[var(--color-primary)]/30"
-                }`}
+                className={`relative text-left p-4 rounded-xl border transition-all ${isSelected
+                  ? "border-[var(--color-primary)] bg-[var(--color-primary)]/5"
+                  : "border-[var(--border-color)] bg-[var(--bg-card)] hover:border-[var(--color-primary)]/30"
+                  }`}
               >
                 {method.recommended && (
                   <Badge className="absolute top-2 right-2 bg-[#8B5CF6]/20 text-[#8B5CF6] text-[10px] border-[#8B5CF6]/30">

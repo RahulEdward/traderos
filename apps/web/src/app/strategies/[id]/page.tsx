@@ -32,6 +32,7 @@ import { BacktestRunner } from "@/components/backtest/backtest-runner";
 import { cn } from "@/lib/utils";
 import { InfoTooltip } from "@/components/shared/info-tooltip";
 import { STRATEGY_STATUS_CONFIG, formatINR, formatPercentage } from "@tradeos/shared";
+import { toast } from "sonner";
 
 interface MetricItem {
   label: string;
@@ -128,28 +129,29 @@ export default function StrategyDetailPage() {
 
   const metricsGrid: MetricItem[] = latestBacktest
     ? [
-        { label: "Total Trades", value: String(latestBacktest.totalTrades), icon: Hash, color: "#3B82F6", tooltip: "Total number of completed trades in this backtest period" },
-        { label: "Win Rate", value: formatPercentage(latestBacktest.winRate), icon: Target, color: latestBacktest.winRate > 55 ? "#10B981" : latestBacktest.winRate < 45 ? "#EF4444" : "#F59E0B", tooltip: "Percentage of trades that were profitable. Above 50% is good, above 60% is excellent" },
-        { label: "Profit Factor", value: latestBacktest.profitFactor.toFixed(2), icon: TrendingUp, color: latestBacktest.profitFactor > 1.5 ? "#10B981" : "#F59E0B", tooltip: "Ratio of gross profits to gross losses. Above 1.5 is good, above 2.0 is excellent" },
-        { label: "Net Profit", value: formatINR(latestBacktest.netProfit), icon: BarChart3, color: latestBacktest.netProfit >= 0 ? "#10B981" : "#EF4444", tooltip: "Total profit after subtracting all losses. The bottom-line result of the strategy" },
-        { label: "Max Drawdown", value: `${formatINR(latestBacktest.maxDrawdown)} (${formatPercentage(latestBacktest.maxDrawdownPct)})`, icon: TrendingDown, color: "#EF4444", tooltip: "Largest peak-to-trough decline in equity. Lower is better. Shows worst-case loss scenario" },
-        { label: "Avg Win", value: formatINR(latestBacktest.avgWin), icon: TrendingUp, color: "#10B981", tooltip: "Average profit amount per winning trade" },
-        { label: "Avg Loss", value: formatINR(latestBacktest.avgLoss), icon: TrendingDown, color: "#EF4444", tooltip: "Average loss amount per losing trade. Compare with Avg Win to assess risk-reward" },
-        { label: "Best Trade", value: formatINR(latestBacktest.bestTrade), icon: Award, color: "#10B981", tooltip: "Highest single trade profit in the entire backtest" },
-        { label: "Worst Trade", value: formatINR(latestBacktest.worstTrade), icon: Shield, color: "#EF4444", tooltip: "Largest single trade loss. Useful for setting stop-loss limits" },
-        { label: "Sharpe Ratio", value: latestBacktest.sharpeRatio.toFixed(2), icon: Activity, color: "#06B6D4", tooltip: "Risk-adjusted return. Above 1.0 is acceptable, above 2.0 is very good, above 3.0 is excellent" },
-        { label: "Expectancy", value: formatINR(latestBacktest.expectancy), icon: Zap, color: "#F59E0B", tooltip: "Average expected profit per trade. Positive means the strategy has an edge over time" },
-        { label: "Recovery Factor", value: latestBacktest.recoveryFactor.toFixed(2), icon: Clock, color: "#A855F7", tooltip: "Net profit divided by max drawdown. Higher means faster recovery from losses. Above 3.0 is good" },
-      ]
+      { label: "Total Trades", value: String(latestBacktest.totalTrades), icon: Hash, color: "#3B82F6", tooltip: "Total number of completed trades in this backtest period" },
+      { label: "Win Rate", value: formatPercentage(latestBacktest.winRate), icon: Target, color: latestBacktest.winRate > 55 ? "#10B981" : latestBacktest.winRate < 45 ? "#EF4444" : "#F59E0B", tooltip: "Percentage of trades that were profitable. Above 50% is good, above 60% is excellent" },
+      { label: "Profit Factor", value: latestBacktest.profitFactor.toFixed(2), icon: TrendingUp, color: latestBacktest.profitFactor > 1.5 ? "#10B981" : "#F59E0B", tooltip: "Ratio of gross profits to gross losses. Above 1.5 is good, above 2.0 is excellent" },
+      { label: "Net Profit", value: formatINR(latestBacktest.netProfit), icon: BarChart3, color: latestBacktest.netProfit >= 0 ? "#10B981" : "#EF4444", tooltip: "Total profit after subtracting all losses. The bottom-line result of the strategy" },
+      { label: "Max Drawdown", value: `${formatINR(latestBacktest.maxDrawdown)} (${formatPercentage(latestBacktest.maxDrawdownPct)})`, icon: TrendingDown, color: "#EF4444", tooltip: "Largest peak-to-trough decline in equity. Lower is better. Shows worst-case loss scenario" },
+      { label: "Avg Win", value: formatINR(latestBacktest.avgWin), icon: TrendingUp, color: "#10B981", tooltip: "Average profit amount per winning trade" },
+      { label: "Avg Loss", value: formatINR(latestBacktest.avgLoss), icon: TrendingDown, color: "#EF4444", tooltip: "Average loss amount per losing trade. Compare with Avg Win to assess risk-reward" },
+      { label: "Best Trade", value: formatINR(latestBacktest.bestTrade), icon: Award, color: "#10B981", tooltip: "Highest single trade profit in the entire backtest" },
+      { label: "Worst Trade", value: formatINR(latestBacktest.worstTrade), icon: Shield, color: "#EF4444", tooltip: "Largest single trade loss. Useful for setting stop-loss limits" },
+      { label: "Sharpe Ratio", value: latestBacktest.sharpeRatio.toFixed(2), icon: Activity, color: "#06B6D4", tooltip: "Risk-adjusted return. Above 1.0 is acceptable, above 2.0 is very good, above 3.0 is excellent" },
+      { label: "Expectancy", value: formatINR(latestBacktest.expectancy), icon: Zap, color: "#F59E0B", tooltip: "Average expected profit per trade. Positive means the strategy has an edge over time" },
+      { label: "Recovery Factor", value: latestBacktest.recoveryFactor.toFixed(2), icon: Clock, color: "#A855F7", tooltip: "Net profit divided by max drawdown. Higher means faster recovery from losses. Above 3.0 is good" },
+    ]
     : [];
 
   return (
-    <div>
+    <div id="strategy-content" className="relative pb-10">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-2">
+      <div className="flex items-center gap-4 mb-8">
         <Button
           variant="ghost"
           size="icon"
+          className="no-print"
           onClick={() => router.push("/strategies")}
         >
           <ArrowLeft className="h-5 w-5" />
@@ -186,7 +188,7 @@ export default function StrategyDetailPage() {
       </div>
 
       {/* Action Buttons */}
-      <div className="flex gap-2 mb-6 ml-11">
+      <div className="flex gap-2 mb-6 ml-11 no-print">
         <Button
           variant="outline"
           onClick={() => setShowImport(true)}
@@ -195,12 +197,66 @@ export default function StrategyDetailPage() {
         </Button>
         <Button
           variant="ghost"
-          onClick={() => {
-            const win = window.open("", "_blank");
-            if (win) {
-              win.document.write(`<html><head><title>${strategy.name} - Report</title><style>body{font-family:sans-serif;padding:20px;background:#fff;color:#000}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:8px;text-align:left;font-size:12px}</style></head><body><h1>${strategy.name}</h1><p>Exported on ${new Date().toLocaleDateString()}</p></body></html>`);
-              win.document.close();
-              win.print();
+          onClick={async () => {
+            try {
+              toast.info("Generating PDF report...");
+              const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+                import("jspdf"),
+                import("html2canvas-pro")
+              ]);
+
+              const element = document.getElementById("strategy-content");
+              if (!element) return;
+
+              // Optionally hide elements only for PDF
+              const hideElements = Array.from(element.querySelectorAll(".no-print")) as HTMLElement[];
+              const originalDisplays = hideElements.map((el) => el.style.display);
+              hideElements.forEach((el) => el.style.display = "none");
+
+              // wait a tick for UI to update
+              await new Promise(r => setTimeout(r, 100));
+
+              const canvas = await html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: "#0A0E1A",
+                logging: false,
+                width: element.scrollWidth,
+                height: element.scrollHeight,
+                windowWidth: element.scrollWidth,
+                windowHeight: element.scrollHeight
+              });
+
+              // restore elements
+              hideElements.forEach((el, index) => el.style.display = originalDisplays[index]);
+
+              const imgData = canvas.toDataURL("image/jpeg", 0.98);
+
+              const pdf = new jsPDF("p", "mm", "a4");
+              const pdfWidth = pdf.internal.pageSize.getWidth();
+              const pageHeight = pdf.internal.pageSize.getHeight();
+              const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+
+              let heightLeft = imgHeight;
+              let position = 0;
+
+              // Add first page
+              pdf.addImage(imgData, "JPEG", 0, position, pdfWidth, imgHeight);
+              heightLeft -= pageHeight;
+
+              // Add multple pages
+              while (heightLeft > 0) {
+                position -= pageHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, "JPEG", 0, position, pdfWidth, imgHeight);
+                heightLeft -= pageHeight;
+              }
+
+              pdf.save(`${strategy.name.replace(/[^a-zA-Z0-9]/g, "_")}_Strategy_Report.pdf`);
+              toast.success("PDF Report downloaded successfully.");
+            } catch (error) {
+              console.error(error);
+              toast.error("Failed to generate PDF.");
             }
           }}
         >

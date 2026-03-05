@@ -81,20 +81,27 @@ const STATUS_LABELS: Record<MetricStatus, string> = {
 // ─── Main Report Page ─────────────────────────────────────────────────────
 
 export default function BacktestReportPage() {
-  const params = useParams<{ id: string }>();
+  const params = useParams();
+  const id = typeof params.id === "string" ? params.id : Array.isArray(params.id) ? params.id[0] : "";
   const [data, setData] = useState<BacktestReportData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const key = `tradeos_backtest_report_${params.id}`;
+    if (!id) {
+      setLoading(false);
+      return;
+    }
+    const key = `tradeos_backtest_report_${id}`;
     const raw = localStorage.getItem(key);
     if (raw) {
       try {
         setData(JSON.parse(raw));
-      } catch {}
+      } catch (e) {
+        console.error("Failed to parse report data:", e);
+      }
     }
     setLoading(false);
-  }, [params.id]);
+  }, [id]);
 
   if (loading) {
     return (
@@ -164,11 +171,29 @@ export default function BacktestReportPage() {
 
   const {
     interpretation: interp,
-    stats,
+    stats: rawStats,
     strategyName,
     method,
     generatedAt,
   } = data;
+
+  // Safe number coercion — handles null values from JSON serialization of Infinity/NaN
+  const safeNum = (v: any, fallback = 0): number => {
+    if (v === null || v === undefined || !isFinite(v)) return fallback;
+    return Number(v);
+  };
+
+  // Create a safe stats proxy
+  const stats = new Proxy(rawStats, {
+    get(target: any, prop: string) {
+      const val = target[prop];
+      if (typeof val === "number" || val === null || val === undefined) {
+        return safeNum(val);
+      }
+      return val;
+    },
+  }) as typeof rawStats;
+
   const verdict = VERDICT_CONFIG[interp.overallVerdict];
 
   const methodLabel =
