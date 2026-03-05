@@ -4,9 +4,13 @@ import { prisma } from "@tradeos/db";
 import Anthropic from "@anthropic-ai/sdk";
 import { parseJsonArray } from "@/lib/db-utils";
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY || "",
-});
+function getAnthropicClient() {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    throw new Error("ANTHROPIC_API_KEY is not configured. Please add it to your .env file to enable AI chat.");
+  }
+  return new Anthropic({ apiKey });
+}
 
 // POST - chat with AI about strategy
 export async function POST(
@@ -83,6 +87,7 @@ Be concise, specific to Indian markets, and actionable. Use INR for monetary val
       { role: "user" as const, content: message },
     ];
 
+    const anthropic = getAnthropicClient();
     const response = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
       max_tokens: 1024,

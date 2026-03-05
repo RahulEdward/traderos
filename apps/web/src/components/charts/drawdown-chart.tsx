@@ -21,7 +21,7 @@ function CustomTooltip({ active, payload, label }: any) {
   return (
     <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-lg px-3 py-2 shadow-lg">
       <p className="text-xs text-[#94A3B8]">{label}</p>
-      <p className="text-sm font-mono font-medium text-[#EF4444]">
+      <p className="text-sm font-mono font-medium text-[#ff2a2a]">
         -{formatPercentage(Math.abs(payload[0].value))}
       </p>
     </div>
@@ -40,17 +40,19 @@ export function DrawdownChart({
       <AreaChart data={data} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
         <defs>
           <linearGradient id="drawdownGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#EF4444" stopOpacity={0.3} />
-            <stop offset="95%" stopColor="#EF4444" stopOpacity={0.0} />
+            <stop offset="5%" stopColor="#ff2a2a" stopOpacity={0.4} />
+            <stop offset="50%" stopColor="#ff2a2a" stopOpacity={0.1} />
+            <stop offset="95%" stopColor="#ff2a2a" stopOpacity={0.0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#1A1A1A" vertical={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={true} horizontal={true} />
         <XAxis
           dataKey="date"
           stroke="#475569"
           fontSize={12}
           tickLine={false}
           axisLine={false}
+          minTickGap={30}
         />
         <YAxis
           stroke="#475569"
@@ -61,9 +63,10 @@ export function DrawdownChart({
         />
         <Tooltip content={<CustomTooltip />} />
         <Area
-          type="monotone"
+          type="stepAfter"
           dataKey="drawdown"
-          stroke="#EF4444"
+          stroke="#ff2a2a"
+          fillOpacity={1}
           fill="url(#drawdownGradient)"
           strokeWidth={2}
         />

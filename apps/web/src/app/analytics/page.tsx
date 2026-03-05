@@ -26,6 +26,8 @@ import {
   Radar,
   LineChart,
   Line,
+  AreaChart,
+  Area,
   PieChart as RePieChart,
   Pie,
   Cell,
@@ -132,11 +134,11 @@ export default function AnalyticsPage() {
   // Normalize risk metrics for radar chart
   const radarData = riskMetrics?.length
     ? [
-        { metric: "Sharpe", ...Object.fromEntries(riskMetrics.map((r: any) => [r.name, r.sharpeRatio])) },
-        { metric: "Sortino", ...Object.fromEntries(riskMetrics.map((r: any) => [r.name, r.sortinoRatio])) },
-        { metric: "Calmar", ...Object.fromEntries(riskMetrics.map((r: any) => [r.name, r.calmarRatio])) },
-        { metric: "Recovery", ...Object.fromEntries(riskMetrics.map((r: any) => [r.name, Math.min(r.recoveryFactor, 10)])) },
-      ]
+      { metric: "Sharpe", ...Object.fromEntries(riskMetrics.map((r: any) => [r.name, r.sharpeRatio])) },
+      { metric: "Sortino", ...Object.fromEntries(riskMetrics.map((r: any) => [r.name, r.sortinoRatio])) },
+      { metric: "Calmar", ...Object.fromEntries(riskMetrics.map((r: any) => [r.name, r.calmarRatio])) },
+      { metric: "Recovery", ...Object.fromEntries(riskMetrics.map((r: any) => [r.name, Math.min(r.recoveryFactor, 10)])) },
+    ]
     : [];
 
   return (
@@ -246,39 +248,44 @@ export default function AnalyticsPage() {
         {/* Cumulative Equity Curve */}
         <div className="bg-[var(--bg-card)] border border-[var(--border-color)] rounded-xl p-6">
           <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-[var(--color-primary)]" />
+            <TrendingUp className="h-5 w-5 text-[#00FF44]" />
             Cumulative Equity Curve
           </h2>
           {equityCurve?.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={equityCurve}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
-                <XAxis dataKey="month" tick={{ fill: "var(--text-secondary)", fontSize: 11 }} />
+              <AreaChart data={equityCurve}>
+                <defs>
+                  <linearGradient id="analyticsEquityGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#00FF44" stopOpacity={0.4} />
+                    <stop offset="50%" stopColor="#00FF44" stopOpacity={0.1} />
+                    <stop offset="95%" stopColor="#00FF44" stopOpacity={0.0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" />
+                <XAxis
+                  dataKey="month"
+                  tick={{ fill: "#94A3B8", fontSize: 11 }}
+                  tickLine={false}
+                  axisLine={false}
+                  minTickGap={30}
+                />
                 <YAxis
-                  tick={{ fill: "var(--text-secondary)", fontSize: 11 }}
+                  tick={{ fill: "#94A3B8", fontSize: 11 }}
+                  tickLine={false}
+                  axisLine={false}
                   tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}K`}
                 />
                 <Tooltip content={<CustomTooltip />} />
-                <Legend wrapperStyle={{ color: "var(--text-secondary)", fontSize: 12 }} />
-                <Line
-                  type="monotone"
+                <Area
+                  type="stepAfter"
                   dataKey="Total"
-                  stroke="var(--text-primary)"
+                  stroke="#00FF44"
+                  fill="url(#analyticsEquityGrad)"
+                  fillOpacity={1}
                   strokeWidth={2}
-                  dot={false}
+                  name="Total"
                 />
-                {strategyNames?.map((name: string, i: number) => (
-                  <Line
-                    key={name}
-                    type="monotone"
-                    dataKey={name}
-                    stroke={COLORS[i % COLORS.length]}
-                    strokeWidth={1.5}
-                    dot={false}
-                    strokeDasharray={i > 0 ? "5 5" : undefined}
-                  />
-                ))}
-              </LineChart>
+              </AreaChart>
             </ResponsiveContainer>
           ) : (
             <p className="text-sm text-[var(--text-muted)] text-center py-10">No data available</p>

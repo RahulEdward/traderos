@@ -284,12 +284,13 @@ export function AiAnalysisTab({
   }
 
   const analysis = selectedAnalysis;
-  const verdictConfig = {
+  const verdictConfig: Record<string, { label: string; color: string; icon: any }> = {
     READY: { label: "Ready to Go Live", color: "#10B981", icon: CheckCircle2 },
+    PAPER_TRADE_READY: { label: "Paper Trade Ready", color: "#06B6D4", icon: CheckCircle2 },
     NEEDS_WORK: { label: "Needs More Work", color: "#F59E0B", icon: AlertTriangle },
     NOT_READY: { label: "Not Ready", color: "#EF4444", icon: XCircle },
   };
-  const verdict = verdictConfig[analysis.readinessVerdict];
+  const verdict = verdictConfig[analysis.readinessVerdict] || verdictConfig.NEEDS_WORK;
   const VerdictIcon = verdict.icon;
 
   return (

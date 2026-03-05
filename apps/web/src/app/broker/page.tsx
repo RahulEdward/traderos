@@ -85,7 +85,8 @@ export default function BrokerPage() {
       const res = await fetch("/api/broker/angelone/positions?type=funds");
       if (res.ok) {
         const data = await res.json();
-        setFunds(data);
+        // API returns { funds: {...} } — extract the inner object
+        setFunds(data?.funds || data);
       }
     } catch {
       // silently fail

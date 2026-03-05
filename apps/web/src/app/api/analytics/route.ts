@@ -43,15 +43,15 @@ export async function GET() {
     );
     const avgWinRate = withBacktest.length
       ? withBacktest.reduce(
-          (sum, s) => sum + (s.backtestResults[0]?.winRate || 0),
-          0
-        ) / withBacktest.length
+        (sum, s) => sum + (s.backtestResults[0]?.winRate || 0),
+        0
+      ) / withBacktest.length
       : 0;
     const avgProfitFactor = withBacktest.length
       ? withBacktest.reduce(
-          (sum, s) => sum + (s.backtestResults[0]?.profitFactor || 0),
-          0
-        ) / withBacktest.length
+        (sum, s) => sum + (s.backtestResults[0]?.profitFactor || 0),
+        0
+      ) / withBacktest.length
       : 0;
 
     const statusDistribution = strategies.reduce(
@@ -84,6 +84,71 @@ export async function GET() {
       };
     });
 
+    // Build equity curve and monthly P&L from trades
+    const strategiesWithTrades = await prisma.strategy.findMany({
+      where: { userId },
+      include: {
+        backtestResults: {
+          orderBy: { importedAt: "desc" },
+          take: 1,
+          include: { trades: { orderBy: { tradeNumber: "asc" } } },
+        },
+      },
+    });
+
+    const monthlyMap = new Map<string, { month: string; total: number;[key: string]: any }>();
+    const equityCurveMap = new Map<string, { month: string; Total: number;[key: string]: any }>();
+    const activeStrategyNames: string[] = [];
+
+    for (const strat of strategiesWithTrades) {
+      const bt = strat.backtestResults[0];
+      if (!bt?.trades?.length) continue;
+      activeStrategyNames.push(strat.name);
+
+      let cumPnl = 0;
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+      for (const trade of bt.trades) {
+        cumPnl += trade.profitLoss;
+        const d = new Date(trade.exitDate || trade.entryDate);
+        const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+        const monthLabel = `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
+
+        // Monthly P&L
+        if (!monthlyMap.has(monthKey)) {
+          monthlyMap.set(monthKey, { month: monthLabel, total: 0 });
+        }
+        const mEntry = monthlyMap.get(monthKey)!;
+        mEntry.total += trade.profitLoss;
+
+        // Equity curve (per strategy + total)
+        if (!equityCurveMap.has(monthKey)) {
+          equityCurveMap.set(monthKey, { month: monthLabel, Total: 0 });
+        }
+        const eqEntry = equityCurveMap.get(monthKey)!;
+        eqEntry[strat.name] = cumPnl;
+      }
+    }
+
+    // Sort by month key and compute running total
+    const sortedMonthlyKeys = Array.from(monthlyMap.keys()).sort();
+    const monthlyPnL = sortedMonthlyKeys.map((k) => monthlyMap.get(k)!);
+
+    const sortedEquityKeys = Array.from(equityCurveMap.keys()).sort();
+    let runningTotal = 0;
+    const equityCurve = sortedEquityKeys.map((k) => {
+      const entry = equityCurveMap.get(k)!;
+      // Sum all strategy values for the total
+      let monthTotal = 0;
+      for (const name of activeStrategyNames) {
+        if (entry[name] !== undefined) {
+          monthTotal = entry[name]; // Use the last cumPnl for this month
+        }
+      }
+      entry.Total = monthTotal;
+      return entry;
+    });
+
     return NextResponse.json({
       strategyComparison,
       riskMetrics,
@@ -104,10 +169,10 @@ export async function GET() {
           0
         ),
       },
-      strategyNames: withBacktest.map((s) => s.name),
-      monthlyPnL: [],
+      strategyNames: activeStrategyNames.length > 0 ? activeStrategyNames : withBacktest.map((s) => s.name),
+      monthlyPnL,
       winRateOverTime: [],
-      equityCurve: [],
+      equityCurve,
     });
   } catch (error) {
     console.error("Error fetching analytics:", error);

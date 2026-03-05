@@ -15,8 +15,17 @@ async function getAngelCredentials(userId: string) {
   ) {
     return null;
   }
+
+  // Read the SmartAPI key from saved config (not from env var which may be empty)
+  const config = typeof integration.configJson === "string"
+    ? JSON.parse(integration.configJson)
+    : (integration.configJson as any) || {};
+  const smartApiKey = config?.smartApiKeyEncrypted
+    ? decrypt(config.smartApiKeyEncrypted)
+    : process.env.ANGELONE_API_KEY || "";
+
   return {
-    apiKey: process.env.ANGELONE_API_KEY || "",
+    apiKey: smartApiKey,
     accessToken: decrypt(integration.apiKeyEncrypted),
   };
 }

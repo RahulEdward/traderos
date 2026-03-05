@@ -4,9 +4,13 @@ import { prisma } from "@tradeos/db";
 import Anthropic from "@anthropic-ai/sdk";
 import { toJsonString, toJsonObjectString, parseAnalysisArrays } from "@/lib/db-utils";
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY || "",
-});
+function getAnthropicClient() {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    throw new Error("ANTHROPIC_API_KEY is not configured. Please add it to your .env file to enable AI analysis.");
+  }
+  return new Anthropic({ apiKey });
+}
 
 const SYSTEM_PROMPT = `You are an expert algorithmic trading strategy analyst specializing in Indian markets (NSE/BSE). You analyze breakout trading strategies based on their backtest results and provide structured, actionable analysis. Always respond in the exact JSON structure requested.`;
 
@@ -101,6 +105,7 @@ Respond in this exact JSON format:
   "marketRegimeNotes": "<when this strategy works best and when it struggles>"
 }`;
 
+    const anthropic = getAnthropicClient();
     const response = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
       max_tokens: 2048,

@@ -29,12 +29,20 @@ export async function GET() {
       );
     }
 
-    const config = integration.configJson as any;
+    const config = typeof integration.configJson === "string"
+      ? JSON.parse(integration.configJson)
+      : (integration.configJson as any) || {};
+
     const authToken = decrypt(integration.apiKeyEncrypted);
+
+    // Read SmartAPI key from stored config (not from env var which may be empty)
+    const smartApiKey = config?.smartApiKeyEncrypted
+      ? decrypt(config.smartApiKeyEncrypted)
+      : process.env.ANGELONE_API_KEY || "";
 
     return NextResponse.json({
       wsUrl: "wss://smartapisocket.angelone.in/smart-stream",
-      apiKey: process.env.ANGELONE_API_KEY || "",
+      apiKey: smartApiKey,
       clientCode: config?.clientCode || "",
       authToken,
       // feedToken would be stored during auth if available
